@@ -102,6 +102,16 @@ export class UnitService extends BaseService<UnitDocument> {
       return [];
     }
   };
+  findUnitsWithVehicles = async (options: FilterQuery<UnitDocument>): Promise<string[]> => {
+    try {
+      // options.isDeleted = false;
+      return await this.unitModel.find(options).lean();
+    } catch (err) {
+      Logger.error({ message: err.message, stack: err.stack });
+      // const expectionOccure = {'err':err,'data':''}
+      return [];
+    }
+  };
   findUnitsWithOffice = async (officeID: any): Promise<string[]> => {
     try {
       // options.isDeleted = false;
@@ -112,11 +122,11 @@ export class UnitService extends BaseService<UnitDocument> {
       return [];
     }
   };
- updateUnitsWithOffice = async (filter: any,updateOperation:any)=> {
+  updateUnitsWithOffice = async (filter: any, updateOperation: any) => {
     try {
       // options.isDeleted = false;
       const updated = await this.unitModel.updateMany(filter, updateOperation);
-      return updated
+      return updated;
     } catch (err) {
       Logger.error({ message: err.message, stack: err.stack });
       // const expectionOccure = {'err':err,'data':''}

@@ -77,8 +77,8 @@ export class UnitResponse extends BaseResponseType {
   violations: any;
   ptiType: String;
   isTimeChange: boolean;
-  timezoneOffset:string;
-  deviceToken:string;
+  timezoneOffset: string;
+  deviceToken: string;
 
   constructor(unitDocument: UnitDocument) {
     super();
@@ -111,6 +111,6 @@ export class UnitResponse extends BaseResponseType {
     this.homeTerminalTimeZone = unitDocument.homeTerminalTimeZone;
     this.meta = unitDocument.meta;
     this.violations = unitDocument.violations;
-    this.deviceToken = unitDocument.deviceToken
+    this.deviceToken = unitDocument.deviceToken;
   }
 }

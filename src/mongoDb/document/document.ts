@@ -55,8 +55,8 @@ export default interface UnitDocument extends Document {
   meta: { type: {} };
   violations: [];
   ptiType: String;
-  isTimeChange:boolean;
-  timezoneOffset:string;
+  isTimeChange: boolean;
+  timezoneOffset: string;
   driverProfile?: Documents;
   vehicles: [{}];
   driverEmail: string;
@@ -65,5 +65,5 @@ export default interface UnitDocument extends Document {
   enableElog: boolean;
   yardMove: boolean;
   personalConveyance: boolean;
-  deviceToken:string;
+  deviceToken: string;
 }
