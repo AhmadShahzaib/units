@@ -271,6 +271,11 @@ export class UnitService extends BaseService<UnitDocument> {
   ): Promise<any> => {
     try {
       const {
+        isActive,
+            eldNo,
+            vendor,
+            serialNo,
+            eldId,
         vehicleId,
         deviceId,
         licensePlateNo,
@@ -279,19 +284,19 @@ export class UnitService extends BaseService<UnitDocument> {
         vehicleVinNo,
       } = data;
 
-      const oldAssignment = await this.unitModel.findOneAndUpdate(
-        { vehicleId },
-        {
-          vehicleId: null,
-          vehicleLicensePlateNo: null,
-          vehicleMake: null,
-          manualVehicleId: null,
-          vehicleVinNo: null,
-        },
-      );
+      // const oldAssignment = await this.unitModel.findOneAndUpdate(
+      //   { vehicleId },
+      //   {
+      //     vehicleId: null,
+      //     vehicleLicensePlateNo: null,
+      //     vehicleMake: null,
+      //     manualVehicleId: null,
+      //     vehicleVinNo: null,
+      //   },
+      // );
       return await this.unitModel.findOneAndUpdate(
         {
-          deviceId,
+          vehicleId,
         },
         {
           vehicleMake: make,
@@ -299,6 +304,10 @@ export class UnitService extends BaseService<UnitDocument> {
           vehicleLicensePlateNo: licensePlateNo,
           manualVehicleId: manualVehicleId,
           vehicleVinNo: vehicleVinNo,
+          deviceId:eldId,
+          deviceSerialNo:serialNo,
+          deviceVendor:vendor,
+          eldNo:eldNo
         },
         // {
         //   new: true,

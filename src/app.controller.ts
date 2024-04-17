@@ -186,12 +186,12 @@ export class UnitController extends BaseController {
   @EventPattern({ cmd: 'assign_device_to_vehicle' })
   async tcp_handleDeviceAssignedToVehicle(requestModel: DeviceVehicleRequest) {
     try {
-      const { vehicleId, deviceId } = requestModel;
+      const { vehicleId, deviceId, eldId } = requestModel;
       if (
         vehicleId &&
         // deviceId &&
-        Types.ObjectId.isValid(vehicleId)
-        // Types.ObjectId.isValid(deviceId)
+        Types.ObjectId.isValid(vehicleId)&&
+        Types.ObjectId.isValid(eldId)
       ) {
         const data = await this.unitService.updateVehiclesDevice(requestModel);
         if (data.ok === 1) {
