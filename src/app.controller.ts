@@ -466,7 +466,7 @@ export class UnitController extends BaseController {
           { driverId },
           { isDriverActive: true },
           { isVehicleActive: true },
-          { isDeviceActive: true },
+         
         ],
       };
       const unit = await this.unitService.findUnit(options);
