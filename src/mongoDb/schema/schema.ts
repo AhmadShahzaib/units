@@ -189,8 +189,8 @@ export const UnitSchema = new mongoose.Schema(
     eldType: { type: String, required: false },
     deviceModel: { type: String, required: false },
     meta: { type: {} },
-    isTimeChange:{type:Boolean, default: false},
-    timezoneOffset:{type:String,default:""},
+    isTimeChange: { type: Boolean, default: false },
+    timezoneOffset: { type: String, default: '' },
     driverEmail: { type: String, required: true, index: true },
     phoneNumber: { type: String, required: true },
     vehicles: [{}],
@@ -199,7 +199,7 @@ export const UnitSchema = new mongoose.Schema(
     enableElog: { type: Boolean, required: true },
     yardMove: { type: Boolean, required: true },
     personalConveyance: { type: Boolean, required: true },
-    deviceToken:{type:String, default:""}
+    deviceToken: { type: String, default: '' },
   },
   { timestamps: true },
 );

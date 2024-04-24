@@ -186,12 +186,12 @@ export class UnitController extends BaseController {
   @EventPattern({ cmd: 'assign_device_to_vehicle' })
   async tcp_handleDeviceAssignedToVehicle(requestModel: DeviceVehicleRequest) {
     try {
-      const { vehicleId, deviceId } = requestModel;
+      const { vehicleId, deviceId, eldId } = requestModel;
       if (
         vehicleId &&
         // deviceId &&
-        Types.ObjectId.isValid(vehicleId)
-        // Types.ObjectId.isValid(deviceId)
+        Types.ObjectId.isValid(vehicleId)&&
+        Types.ObjectId.isValid(eldId)
       ) {
         const data = await this.unitService.updateVehiclesDevice(requestModel);
         if (data.ok === 1) {
@@ -260,6 +260,32 @@ export class UnitController extends BaseController {
     }
   }
 
+  // get assigned vehicle
+
+  @UseInterceptors(new MessagePatternResponseInterceptor())
+  @MessagePattern({ cmd: 'get_assigned_vehicles' })
+  async tcp_getAssignedVehicles(key: string): Promise<any> {
+    try {
+      let options: FilterQuery<UnitDocument>;
+
+      if (key == 'deviceId') {
+        options = { [key]: { $ne: null }, vehicleId: { $ne: null } };
+      }
+      const assign = await this.unitService.findUnitsWithVehicles(options);
+      if (assign && assign.length > 0) {
+        let returnObject={vehicleId:"",deviceId:""};
+        return assign.map(function (item) {
+          returnObject.vehicleId=item["manualVehicleId"];
+          returnObject.deviceId = item["deviceId"]
+          return returnObject;
+        });
+      } else {
+        return assign;
+      }
+    } catch (exception) {
+      return exception;
+    }
+  }
   @UseInterceptors(new MessagePatternResponseInterceptor())
   @MessagePattern({ cmd: 'is_device_assigned' })
   async tcp_isDeviceAssigned(data: Record<string, string>): Promise<any> {
@@ -440,7 +466,7 @@ export class UnitController extends BaseController {
           { driverId },
           { isDriverActive: true },
           { isVehicleActive: true },
-          { isDeviceActive: true },
+         
         ],
       };
       const unit = await this.unitService.findUnit(options);
@@ -617,38 +643,34 @@ export class UnitController extends BaseController {
 
           if (matchingUnit) {
             // date:any,driverId:any,tenantId,companyTimeZone
-          //   const logform = await firstValueFrom<MessagePatternResponseType>(
-          //     this.reportService.send(
-          //       { cmd: 'get_logform' },
-          //       {
-          //         date: date,
-          //         driverId: matchingUnit.driverId,
-          //         tenantId: matchingUnit.tenantId,
-          //         companyTimeZone:
-          //           matchingUnit.homeTerminalTimeZone['_doc']['tzCode'],
-          //       },
-          //     ),
-          //   );
-
-          //   // Do something with the matching unit and dataObject
-          //   matchingUnit.violations = dataObject.violations;
-          //   matchingUnit.ptiType = dataObject.isPti;
-          //   console.log('\n\n' + ('shippingDocument' in logform));
-          //   console.log('\n\n' + 'sign' in logform);
-
-          //   // Check for shippingDocument key
-          //   matchingUnit.violations.push({
-          //     isShippingID: 'shippingDocument' in logform?.data,
-          //   });
-
-          //   // Check for sign key
-          //   matchingUnit.violations.push({
-          //     isSignature: 'sign' in logform?.data,
-          //   });
-
-          //   console.log(`Driver ${matchingUnit} has data: `, dataObject);
+            //   const logform = await firstValueFrom<MessagePatternResponseType>(
+            //     this.reportService.send(
+            //       { cmd: 'get_logform' },
+            //       {
+            //         date: date,
+            //         driverId: matchingUnit.driverId,
+            //         tenantId: matchingUnit.tenantId,
+            //         companyTimeZone:
+            //           matchingUnit.homeTerminalTimeZone['_doc']['tzCode'],
+            //       },
+            //     ),
+            //   );
+            //   // Do something with the matching unit and dataObject
+            //   matchingUnit.violations = dataObject.violations;
+            //   matchingUnit.ptiType = dataObject.isPti;
+            //   console.log('\n\n' + ('shippingDocument' in logform));
+            //   console.log('\n\n' + 'sign' in logform);
+            //   // Check for shippingDocument key
+            //   matchingUnit.violations.push({
+            //     isShippingID: 'shippingDocument' in logform?.data,
+            //   });
+            //   // Check for sign key
+            //   matchingUnit.violations.push({
+            //     isSignature: 'sign' in logform?.data,
+            //   });
+            //   console.log(`Driver ${matchingUnit} has data: `, dataObject);
           } else {
-          //   // Handle the case where no matching unit is found
+            //   // Handle the case where no matching unit is found
             console.log(
               `No matching unit found for driverId ${dataObject.driverId}`,
             );
