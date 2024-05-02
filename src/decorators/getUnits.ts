@@ -5,7 +5,7 @@ import { ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import {
   CombineDecorators,
   CombineDecoratorType,
-  UNITS,
+  UNITS,DRIVER
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import { sortableAttributes } from '../models';
 let responseExample = {
@@ -38,7 +38,7 @@ let responseExample = {
 export default function GetDecorators() {
   const GetDecorators: Array<CombineDecoratorType> = [
     Get(),
-    SetMetadata('permissions', [UNITS.LIST]),
+    SetMetadata('permissions', [DRIVER.LIST]),
     ApiBearerAuth('access-token'),
     ApiResponse({
       status: HttpStatus.OK,

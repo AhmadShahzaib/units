@@ -15,7 +15,7 @@ import {
 import {
   CombineDecorators,
   CombineDecoratorType,
-  ELD,
+  DRIVER,
   ErrorType,
   GetOperationId,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
@@ -34,7 +34,7 @@ export default function UpdateByIdDecoratorsMobile() {
     Put('/mobile'),
     ApiBearerAuth('access-token'),
     ApiConsumes('multipart/form-data'),
-    SetMetadata('permissions', [ELD.EDIT]),
+    SetMetadata('permissions', [DRIVER.EDIT]),
     ApiExtraModels(UnitEditRequest),
     ApiBody({
       examples: {

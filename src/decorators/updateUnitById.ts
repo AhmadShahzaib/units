@@ -10,7 +10,7 @@ import {
 import {
   CombineDecorators,
   CombineDecoratorType,
-  ELD,
+  DRIVER,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import { UnitEditRequest } from 'models/editUnitRequestModel';
 
@@ -25,7 +25,7 @@ export default function UpdateByIdDecorators() {
   const UpdateByIdDecorators: Array<CombineDecoratorType> = [
     Put(':driverId'),
     ApiBearerAuth('access-token'),
-    SetMetadata('permissions', [ELD.EDIT]),
+    SetMetadata('permissions', [DRIVER.EDIT]),
     ApiBearerAuth('access-token'),
     ApiParam({
       name: 'driverId',
