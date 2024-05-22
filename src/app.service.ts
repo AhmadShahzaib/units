@@ -27,6 +27,7 @@ import { UnitEditRequest } from 'models/editUnitRequestModel';
 import { UnitDriver } from 'models/updateUnit.model';
 import moment from 'moment';
 import { VehicleDeviceRequest } from 'models/vehicleDeviceRequest';
+import { CoDriverUnitUpdateRequest } from 'models/coDriverUnitRequest';
 @Injectable()
 export class UnitService extends BaseService<UnitDocument> {
   private readonly logger = new Logger('Units Service');
@@ -102,7 +103,9 @@ export class UnitService extends BaseService<UnitDocument> {
       return [];
     }
   };
-  findUnitsWithVehicles = async (options: FilterQuery<UnitDocument>): Promise<string[]> => {
+  findUnitsWithVehicles = async (
+    options: FilterQuery<UnitDocument>,
+  ): Promise<string[]> => {
     try {
       // options.isDeleted = false;
       return await this.unitModel.find(options).lean();
@@ -272,10 +275,10 @@ export class UnitService extends BaseService<UnitDocument> {
     try {
       const {
         isActive,
-            eldNo,
-            vendor,
-            serialNo,
-            eldId,
+        eldNo,
+        vendor,
+        serialNo,
+        eldId,
         vehicleId,
         deviceId,
         licensePlateNo,
@@ -304,10 +307,10 @@ export class UnitService extends BaseService<UnitDocument> {
           vehicleLicensePlateNo: licensePlateNo,
           manualVehicleId: manualVehicleId,
           vehicleVinNo: vehicleVinNo,
-          deviceId:eldId,
-          deviceSerialNo:serialNo,
-          deviceVendor:vendor,
-          eldNo:eldNo
+          deviceId: eldId,
+          deviceSerialNo: serialNo,
+          deviceVendor: vendor,
+          eldNo: eldNo,
         },
         // {
         //   new: true,
@@ -774,6 +777,46 @@ export class UnitService extends BaseService<UnitDocument> {
           new: true,
           upsert,
           rawResult: true,
+        },
+      );
+    } catch (error) {
+      this.logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  };
+  updateCoDriverUnit = async (
+    deviceData: CoDriverUnitUpdateRequest,
+    upsert: boolean = true,
+  ) => {
+    try {
+      const {
+        driverId,
+        vehicleId,
+        deviceId,
+        coDriverId,
+        eldNo,
+        deviceVendor,
+        deviceSerialNo,
+        manualVehicleId,
+        vehicleMake,
+        vehicleLicensePlateNo,
+        vehicleVinNo,
+      } = deviceData;
+      return await this.unitModel.findOneAndUpdate(
+        {
+          driverId: driverId,
+        },
+        {
+          vehicleId,
+          deviceId,
+          coDriverId,
+          deviceVendor,
+          deviceSerialNo,
+          eldNo,
+          manualVehicleId,
+          vehicleMake,
+          vehicleLicensePlateNo,
+          vehicleVinNo,
         },
       );
     } catch (error) {
