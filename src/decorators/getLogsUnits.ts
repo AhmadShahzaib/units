@@ -35,9 +35,9 @@ let responseExample = {
   last_page: 1,
 };
 
-export default function GetDecorators() {
-  const GetDecorators: Array<CombineDecoratorType> = [
-    Get(),
+export default function GetLogsDecorators() {
+  const GetLogsDecorators: Array<CombineDecoratorType> = [
+    Get(`/logs`),
     SetMetadata('permissions', [DRIVER.LIST]),
     ApiBearerAuth('access-token'),
     ApiResponse({
@@ -75,5 +75,5 @@ export default function GetDecorators() {
       required: false,
     }),
   ];
-  return CombineDecorators(GetDecorators);
+  return CombineDecorators(GetLogsDecorators);
 }
