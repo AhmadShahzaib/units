@@ -9,12 +9,7 @@ export class TrackingListing extends BaseResponseType {
   id: Schema.Types.ObjectId;
   @ApiProperty()
   driverId: string;
-  @ApiProperty()
-  vehicleId: Schema.Types.ObjectId;
-  @ApiProperty()
-  deviceId: Schema.Types.ObjectId;
-  @ApiProperty()
-  deviceVendor: string;
+ 
 
   @ApiProperty()
   manualVehicleId: string;
@@ -45,15 +40,10 @@ export class TrackingListing extends BaseResponseType {
   status: string;
   @ApiProperty()
   lastActivityDate: number;
-  @ApiProperty()
-  isDriverActive: boolean;
-  @ApiProperty()
-  isVehicleActive: boolean;
+ 
   @ApiProperty()
   driverUserName: string;
-  @ApiProperty()
-
-  isDeviceActive: boolean;
+  
   @ApiProperty()
   tenantId: Schema.Types.ObjectId;
   @ApiProperty()
@@ -71,10 +61,7 @@ lastActivity: { type: {} };
     super();
     this.id = unitDocument.id;
     this.driverId = unitDocument.driverId;
-    this.vehicleId = unitDocument.vehicleId;
-    this.deviceId = unitDocument.deviceId;
-    this.deviceVendor = unitDocument.deviceVendor;
- 
+  
     this.manualVehicleId = unitDocument.manualVehicleId;
    
     this.lastKnownLocation = unitDocument.lastKnownLocation;
@@ -84,9 +71,7 @@ lastActivity: { type: {} };
     this.driverFirstName = unitDocument.driverFirstName;
     this.driverLastName = unitDocument.driverLastName;
     this.driverFullName = unitDocument.driverFullName;
-    this.isDriverActive = unitDocument.isDriverActive;
-    this.isVehicleActive = unitDocument.isVehicleActive;
-    this.isDeviceActive = unitDocument.isDeviceActive;
+   
     this.status = unitDocument.status;
     this.lastActivityDate = unitDocument.lastActivityDate;
     this.tenantId = unitDocument.tenantId;

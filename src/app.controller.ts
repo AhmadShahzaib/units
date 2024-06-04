@@ -702,7 +702,7 @@ export class UnitController extends BaseController {
     }
   }
 
-  
+
   @GetDecorators()
   async getDrivers(
     @Query(new ListingParamsValidationPipe()) queryParams,
@@ -1041,9 +1041,8 @@ export class UnitController extends BaseController {
 
       options.$and = [];
       options.$and.push(
-        { deviceId: { $exists: true, $ne: null } },
-        { driverId: { $exists: true, $ne: null } },
-        { vehicleId: { $exists: true, $ne: null } },
+        { meta: { $exists: true, $ne: null } },
+       
         { tenantId: id },
       );
 
@@ -1078,39 +1077,22 @@ export class UnitController extends BaseController {
         queryResponse,
       );
 
-      const unitList: UnitResponse[] = [];
+      const unitList: TrackingListing[] = [];
       let driverIDS = [];
+      let lastActivity;
       for (const user of queryResponse) {
-        unitList.push(new UnitResponse(user));
-        driverIDS.push(user['_doc']['driverId']);
-      }
-      if (date) {
-        console.log('IN IF when date present');
-        const resu = await firstValueFrom<MessagePatternResponseType>(
-          this.hosClient.send(
-            { cmd: 'get_recordTable' },
-            { driverID: driverIDS, date: date },
-          ),
-        );
+        if(user['_doc'].meta){
+        let lastActivity  = user['_doc']["meta"]["lastActivity"]
 
-        console.log('got record table');
-        for (let i = 0; i < resu.data.length; i++) {
-          const dataObject = resu.data[i];
+      
+        if(user['_doc']["meta"]["lastActivity"]){
 
-          // Find the corresponding unit for the current dataObject's driverId
-          const matchingUnit = unitList.find(
-            (unit) => unit.driverId == dataObject.driverId,
-          );
-
-          if (matchingUnit) {
-          } else {
-            //   // Handle the case where no matching unit is found
-            console.log(
-              `No matching unit found for driverId ${dataObject.driverId}`,
-            );
-          }
+          unitList.push(new TrackingListing(user));
         }
       }
+        // driverIDS.push(user['_doc']['driverId']);
+      }
+     
 
       return response.status(HttpStatus.OK).send({
         data: unitList,
