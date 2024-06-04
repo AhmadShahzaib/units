@@ -39,7 +39,7 @@ import {
 } from './models/driverVehicleRequest';
 import { DeviceVehicleRequest } from 'models/deviceVehicle';
 import GetDecorators from './decorators/getUnits';
-import GetTrackingDecorators from './decorators/getUnits';
+import GetTrackingDecorators from './decorators/getTrcaking';
 
 import { searchableAttributes } from './models';
 import { sortableAttributes } from './models';
