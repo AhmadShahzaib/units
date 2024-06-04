@@ -44,7 +44,7 @@ import GetTrackingDecorators from './decorators/getTrcaking';
 import { searchableAttributes } from './models';
 import { sortableAttributes } from './models';
 import { UnitResponse } from './models/unitResponse.model';
-import {TrackingListing} from './models/trackingListing';
+import { TrackingListing } from './models/trackingListing';
 
 import { HOSData } from 'models/HOSData';
 import GetByIdDecorators from 'decorators/unitsgetById';
@@ -834,142 +834,140 @@ export class UnitController extends BaseController {
       throw error;
     }
   }
-// get listing of all units 
-// for the traking 
-@GetTrackingDecorators()
-async getTrackingListing(
-  @Query(new ListingParamsValidationPipe()) queryParams,
-  @Req() request: Request,
-  @Res() response: Response,
-) {
-  try {
-    const options: FilterQuery<UnitDocument> = {};
-    const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
-    let isActive = queryParams?.isActive;
-    const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-    let arr = [];
-    arr.push(isActive);
-    if (arr.includes('true')) {
-      isActive = true;
-    } else {
-      isActive = false;
-    }
-    // let isActive = false
-    // if(isActive === 'false'){}
-
-    if (search) {
-      options.$or = [];
-      searchableAttributes.forEach((attribute) => {
-        options.$or.push({ [attribute]: new RegExp(search, 'i') });
-      });
-      if (arr[0]) {
-        options['$and'] = [];
-        isActiveinActive.forEach((attribute) => {
-          options.$and.push({ [attribute]: isActive });
-        });
+  // get listing of all units
+  // for the traking
+  @GetTrackingDecorators()
+  async getTrackingListing(
+    @Query(new ListingParamsValidationPipe()) queryParams,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
+      const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
+      let isActive = queryParams?.isActive;
+      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
+      let arr = [];
+      arr.push(isActive);
+      if (arr.includes('true')) {
+        isActive = true;
+      } else {
+        isActive = false;
       }
-    } else {
-      // options.$or.push({'isActive':isActive})
-      if (arr[0]) {
+      // let isActive = false
+      // if(isActive === 'false'){}
+
+      if (search) {
         options.$or = [];
-        isActiveinActive.forEach((attribute) => {
-          options.$or.push({ [attribute]: isActive });
+        searchableAttributes.forEach((attribute) => {
+          options.$or.push({ [attribute]: new RegExp(search, 'i') });
         });
-      }
-    }
-
-    options.$and = [];
-    options.$and.push(
-      { deviceId: { $exists: true, $ne: null } },
-      { driverId: { $exists: true, $ne: null } },
-      { vehicleId: { $exists: true, $ne: null } },
-      { tenantId: id },
-    );
-
-    Logger.log(
-      `Calling find method of Unit service with search options to get query.`,
-    );
-    const query = this.unitService.findData(options);
-
-    Logger.log(`Adding sort options to query.`);
-    if (orderBy && sortableAttributes.includes(orderBy)) {
-      query.collation({ locale: 'en' }).sort({ [orderBy]: orderType ?? 1 });
-    } else {
-      query.sort({ updatedAt: -1 });
-    }
-
-    Logger.log(
-      `Calling count method of unit service with search options to get total count of records.`,
-    );
-    const total = await this.unitService.count(options);
-
-    Logger.log(
-      `Executing query with pagination. Skipping: ${
-        ((pageNo ?? 1) - 1) * (limit ?? 10)
-      }, Limit: ${limit ?? 10}`,
-    );
-    if (!limit || !isNaN(limit)) {
-      query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
-    }
-    let queryResponse = await query.exec();
-    console.log(
-      `Resuts ----------------------------------------- `,
-      queryResponse,
-    );
-
-    const unitList: UnitResponse[] = [];
-    let driverIDS = [];
-    for (const user of queryResponse) {
-
-      unitList.push(new UnitResponse(user));
-      driverIDS.push(user['_doc']['driverId']);
-    }
-    if (date) {
-      console.log('IN IF when date present');
-      const resu = await firstValueFrom<MessagePatternResponseType>(
-        this.hosClient.send(
-          { cmd: 'get_recordTable' },
-          { driverID: driverIDS, date: date },
-        ),
-      );
-
-      console.log('got record table');
-      for (let i = 0; i < resu.data.length; i++) {
-        const dataObject = resu.data[i];
-
-        // Find the corresponding unit for the current dataObject's driverId
-        const matchingUnit = unitList.find(
-          (unit) => unit.driverId == dataObject.driverId,
-        );
-
-        if (matchingUnit) {
-         
-        } else {
-          //   // Handle the case where no matching unit is found
-          console.log(
-            `No matching unit found for driverId ${dataObject.driverId}`,
-          );
+        if (arr[0]) {
+          options['$and'] = [];
+          isActiveinActive.forEach((attribute) => {
+            options.$and.push({ [attribute]: isActive });
+          });
+        }
+      } else {
+        // options.$or.push({'isActive':isActive})
+        if (arr[0]) {
+          options.$or = [];
+          isActiveinActive.forEach((attribute) => {
+            options.$or.push({ [attribute]: isActive });
+          });
         }
       }
-    }
 
-    return response.status(HttpStatus.OK).send({
-      data: unitList,
-      total,
-      pageNo: pageNo ?? 1,
-      last_page: Math.ceil(
-        total /
-          (limit && limit.toString().toLowerCase() === 'all'
-            ? total
-            : limit ?? 10),
-      ),
-      message: 'Data found.',
-    });
-  } catch (error) {
-    Logger.error({ message: error.message, stack: error.stack });
-    throw error;
+      options.$and = [];
+      options.$and.push(
+        { deviceId: { $exists: true, $ne: null } },
+        { driverId: { $exists: true, $ne: null } },
+        { vehicleId: { $exists: true, $ne: null } },
+        { tenantId: id },
+      );
+
+      Logger.log(
+        `Calling find method of Unit service with search options to get query.`,
+      );
+      const query = this.unitService.findData(options);
+
+      Logger.log(`Adding sort options to query.`);
+      if (orderBy && sortableAttributes.includes(orderBy)) {
+        query.collation({ locale: 'en' }).sort({ [orderBy]: orderType ?? 1 });
+      } else {
+        query.sort({ updatedAt: -1 });
+      }
+
+      Logger.log(
+        `Calling count method of unit service with search options to get total count of records.`,
+      );
+      const total = await this.unitService.count(options);
+
+      Logger.log(
+        `Executing query with pagination. Skipping: ${
+          ((pageNo ?? 1) - 1) * (limit ?? 10)
+        }, Limit: ${limit ?? 10}`,
+      );
+      if (!limit || !isNaN(limit)) {
+        query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
+      }
+      let queryResponse = await query.exec();
+      console.log(
+        `Resuts ----------------------------------------- `,
+        queryResponse,
+      );
+
+      const unitList: UnitResponse[] = [];
+      let driverIDS = [];
+      for (const user of queryResponse) {
+        unitList.push(new UnitResponse(user));
+        driverIDS.push(user['_doc']['driverId']);
+      }
+      if (date) {
+        console.log('IN IF when date present');
+        const resu = await firstValueFrom<MessagePatternResponseType>(
+          this.hosClient.send(
+            { cmd: 'get_recordTable' },
+            { driverID: driverIDS, date: date },
+          ),
+        );
+
+        console.log('got record table');
+        for (let i = 0; i < resu.data.length; i++) {
+          const dataObject = resu.data[i];
+
+          // Find the corresponding unit for the current dataObject's driverId
+          const matchingUnit = unitList.find(
+            (unit) => unit.driverId == dataObject.driverId,
+          );
+
+          if (matchingUnit) {
+          } else {
+            //   // Handle the case where no matching unit is found
+            console.log(
+              `No matching unit found for driverId ${dataObject.driverId}`,
+            );
+          }
+        }
+      }
+
+      return response.status(HttpStatus.OK).send({
+        data: unitList,
+        total,
+        pageNo: pageNo ?? 1,
+        last_page: Math.ceil(
+          total /
+            (limit && limit.toString().toLowerCase() === 'all'
+              ? total
+              : limit ?? 10),
+        ),
+        message: 'Data found.',
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
   }
-}
   // @UpdateByIdDecoratorsMobile()
   // @UseInterceptors(FileInterceptor('driverSignature'))
   // async updateMobile(
