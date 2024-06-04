@@ -39,10 +39,12 @@ import {
 } from './models/driverVehicleRequest';
 import { DeviceVehicleRequest } from 'models/deviceVehicle';
 import GetDecorators from './decorators/getUnits';
+import GetTrackingDecorators from './decorators/getUnits';
+
 import { searchableAttributes } from './models';
 import { sortableAttributes } from './models';
 import { UnitResponse } from './models/unitResponse.model';
-import {  } from './models/trackingListing';
+import {TrackingListing} from './models/trackingListing';
 
 import { HOSData } from 'models/HOSData';
 import GetByIdDecorators from 'decorators/unitsgetById';
@@ -833,7 +835,7 @@ export class UnitController extends BaseController {
   }
 // get listing of all units 
 // for the traking 
-@GetDecorators()
+@GetTrackingDecorators()
 async getTrackingListing(
   @Query(new ListingParamsValidationPipe()) queryParams,
   @Req() request: Request,
