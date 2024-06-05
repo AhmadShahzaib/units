@@ -661,6 +661,9 @@ export class UnitController extends BaseController {
             //       },
             //     ),
             //   );
+            matchingUnit.violations = dataObject.violations;
+            matchingUnit.ptiType = dataObject.isPti;
+            matchingUnit.meta["clockData"] = dataObject?.clock
             //   // Do something with the matching unit and dataObject
             //   matchingUnit.violations = dataObject.violations;
             //   matchingUnit.ptiType = dataObject.isPti;
