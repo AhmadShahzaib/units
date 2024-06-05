@@ -823,8 +823,9 @@ export class UnitController extends BaseController {
             //     ),
             //   );
             //   // Do something with the matching unit and dataObject
-            //   matchingUnit.violations = dataObject.violations;
-            //   matchingUnit.ptiType = dataObject.isPti;
+              matchingUnit.violations = dataObject.violations;
+              matchingUnit.ptiType = dataObject.isPti;
+              matchingUnit.meta["clockData"] = dataObject?.clock
             //   console.log('\n\n' + ('shippingDocument' in logform));
             //   console.log('\n\n' + 'sign' in logform);
             //   // Check for shippingDocument key
