@@ -15,7 +15,7 @@ import {
 import { UnitEditRequest } from 'models/editUnitRequestModel';
 
 export default function UpdateByIdDecorators() {
-  let example1: UnitEditRequest = {
+  const example1: UnitEditRequest = {
     vehicleId: 'string',
     headOfficeId: 'string',
     homeTerminalAddressId: 'string',

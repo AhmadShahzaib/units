@@ -54,7 +54,7 @@ export default interface UnitDocument extends Document {
   deviceModel: string;
   meta: { type: {} };
   violations: [];
-  ptiType: String;
+  ptiType: string;
   isTimeChange: boolean;
   timezoneOffset: string;
   driverProfile?: Documents;

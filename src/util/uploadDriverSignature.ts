@@ -13,7 +13,7 @@ export const uploadDriverSignature = async (
 ) => {
   try {
     if (file && file?.buffer?.length > 0) {
-      let resUrl = await awsService.uploadFile(
+      const resUrl = await awsService.uploadFile(
         file.buffer,
         `${tenantId}/${driverId}/Signatures/${moment().unix()}-${
           file?.originalname
