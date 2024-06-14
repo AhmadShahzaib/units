@@ -75,7 +75,7 @@ export class UnitResponse extends BaseResponseType {
   isActive: boolean;
   meta: { type: {} };
   violations: any;
-  ptiType: String;
+  ptiType: string;
   isTimeChange: boolean;
   timezoneOffset: string;
   deviceToken: string;

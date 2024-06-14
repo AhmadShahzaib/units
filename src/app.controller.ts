@@ -226,7 +226,7 @@ export class UnitController extends BaseController {
   async tcp_isVehicleAssigned(data: Record<string, string>): Promise<any> {
     try {
       const { vehicleId, driverId } = data;
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [{ vehicleId }, { driverId: { $ne: null } }],
       };
       if (driverId) {
@@ -280,7 +280,7 @@ export class UnitController extends BaseController {
       }
       const assign = await this.unitService.findUnitsWithVehicles(options);
       if (assign && assign.length > 0) {
-        let returnObject = { vehicleId: '', deviceId: '' };
+        const returnObject = { vehicleId: '', deviceId: '' };
         return assign.map(function (item) {
           returnObject.vehicleId = item['manualVehicleId'];
           returnObject.deviceId = item['deviceId'];
@@ -298,7 +298,7 @@ export class UnitController extends BaseController {
   async tcp_isDeviceAssigned(data: Record<string, string>): Promise<any> {
     try {
       const { deviceId, vehicleId } = data;
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [{ deviceId }, { vehicleId: { $ne: null } }],
       };
       if (vehicleId) {
@@ -328,7 +328,7 @@ export class UnitController extends BaseController {
       };
       const assign = await this.unitService.findOne(options);
       if (assign && Object.keys(assign).length > 0) {
-        let carrier = await this.unitService.getCompany(assign.tenantId);
+        const carrier = await this.unitService.getCompany(assign.tenantId);
         if (carrier) {
           assign['_doc']['carrier'] = carrier.name;
           assign['_doc']['usDot'] = carrier.usdot;
@@ -442,7 +442,7 @@ export class UnitController extends BaseController {
   @MessagePattern({ cmd: 'is_unit_active' })
   async tcp_isUnitActive(driverId: string): Promise<any> {
     try {
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [
           { driverId },
           { isDriverActive: true },
@@ -468,7 +468,7 @@ export class UnitController extends BaseController {
   @MessagePattern({ cmd: 'get_unit_by_driverId' })
   async tcp_getUnitByDriverId(driverId: string) {
     try {
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [
           { driverId },
           { isDriverActive: true },
@@ -486,7 +486,7 @@ export class UnitController extends BaseController {
   @MessagePattern({ cmd: 'get_unit_by_vehicleID' })
   async tcp_getUnitByvehicleIDehicleID(vehicleId: string, tenantId) {
     try {
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [
           { vehicleId },
           // { isDriverActive: true },
@@ -536,7 +536,7 @@ export class UnitController extends BaseController {
   @MessagePattern({ cmd: 'get_company' })
   async tcp_getcompany(tenantId: string) {
     try {
-      let carrier = await this.unitService.getCompany(tenantId);
+      const carrier = await this.unitService.getCompany(tenantId);
       return carrier;
     } catch (exception) {
       return exception;
@@ -555,7 +555,7 @@ export class UnitController extends BaseController {
       const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
       let isActive = queryParams?.isActive;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      let arr = [];
+      const arr = [];
       arr.push(isActive);
       if (arr.includes('true')) {
         isActive = true;
@@ -617,14 +617,14 @@ export class UnitController extends BaseController {
       if (!limit || !isNaN(limit)) {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
-      let queryResponse = await query.exec();
+      const queryResponse = await query.exec();
       console.log(
         `Resuts ----------------------------------------- `,
         queryResponse,
       );
 
       const unitList: UnitResponse[] = [];
-      let driverIDS = [];
+      const driverIDS = [];
       for (const user of queryResponse) {
         unitList.push(new UnitResponse(user));
         driverIDS.push(user['_doc']['driverId']);
@@ -717,7 +717,7 @@ export class UnitController extends BaseController {
       const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
       let isActive = queryParams?.isActive;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      let arr = [];
+      const arr = [];
       arr.push(isActive);
       if (arr.includes('true')) {
         isActive = true;
@@ -781,14 +781,14 @@ export class UnitController extends BaseController {
       if (!limit || !isNaN(limit)) {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
-      let queryResponse = await query.exec();
+      const queryResponse = await query.exec();
       console.log(
         `Resuts ----------------------------------------- `,
         queryResponse,
       );
 
       const unitList: UnitResponse[] = [];
-      let driverIDS = [];
+      const driverIDS = [];
       for (const user of queryResponse) {
         unitList.push(new UnitResponse(user));
         driverIDS.push(user['_doc']['driverId']);
@@ -879,7 +879,7 @@ export class UnitController extends BaseController {
       const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
       let isActive = queryParams?.isActive;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      let arr = [];
+      const arr = [];
       arr.push(isActive);
       if (arr.includes('true')) {
         isActive = true;
@@ -943,14 +943,14 @@ export class UnitController extends BaseController {
       if (!limit || !isNaN(limit)) {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
-      let queryResponse = await query.exec();
+      const queryResponse = await query.exec();
       console.log(
         `Resuts ----------------------------------------- `,
         queryResponse,
       );
 
       const unitList: UnitResponse[] = [];
-      let driverIDS = [];
+      const driverIDS = [];
       for (const user of queryResponse) {
         unitList.push(new UnitResponse(user));
         driverIDS.push(user['_doc']['driverId']);
@@ -1012,7 +1012,7 @@ export class UnitController extends BaseController {
       const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
       let isActive = queryParams?.isActive;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      let arr = [];
+      const arr = [];
       arr.push(isActive);
       if (arr.includes('true')) {
         isActive = true;
@@ -1075,18 +1075,18 @@ export class UnitController extends BaseController {
       if (!limit || !isNaN(limit)) {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
-      let queryResponse = await query.exec();
+      const queryResponse = await query.exec();
       console.log(
         `Resuts ----------------------------------------- `,
         queryResponse,
       );
 
       const unitList: TrackingListing[] = [];
-      let driverIDS = [];
+      const driverIDS = [];
       let lastActivity;
       for (const user of queryResponse) {
         if(user['_doc'].meta){
-        let lastActivity  = user['_doc']["meta"]["lastActivity"]
+        const lastActivity  = user['_doc']["meta"]["lastActivity"]
 
       
         if(user['_doc']["meta"]["lastActivity"]){
@@ -1249,7 +1249,7 @@ export class UnitController extends BaseController {
   async tcp_getUnits(vin): Promise<any> {
     console.log(`IM in units controller`);
     try {
-      let ids = [];
+      const ids = [];
       const units = await this.unitService.getUnitsByVin(vin);
       if (units.data.length < 1) {
         return {

@@ -8,7 +8,7 @@ import {
   UNITS,DRIVER
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import { sortableAttributes } from '../models';
-let responseExample = {
+const responseExample = {
   data: [
     {
       id: '62e3650bd9aa36f826be8a9b',

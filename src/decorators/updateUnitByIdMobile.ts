@@ -23,7 +23,7 @@ import { UnitEditRequest } from 'models/editUnitRequestModel';
 import { UnitResponse } from '../models/unitResponse.model';
 
 export default function UpdateByIdDecoratorsMobile() {
-  let example1: UnitEditRequest = {
+  const example1: UnitEditRequest = {
     vehicleId: 'string',
     headOfficeId: 'string',
     homeTerminalAddressId: 'string',
