@@ -40,7 +40,7 @@ import {
 import { DeviceVehicleRequest } from 'models/deviceVehicle';
 import GetDecorators from './decorators/getUnits';
 import GetTrackingDecorators from './decorators/getTrcaking';
-
+import allcurrentStatusesDecorators from './decorators/allcurrentStatuses';
 import { searchableAttributes } from './models';
 import { sortableAttributes } from './models';
 import { UnitResponse } from './models/unitResponse.model';
@@ -519,6 +519,75 @@ export class UnitController extends BaseController {
       return exception;
     }
   }
+  @MessagePattern({ cmd: 'get_all_current_statuses' })
+  async getAllCurrentStatuses(tenantId: any) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
+     
+      const status = {
+        onDuty: 0,
+        offDuty: 0,
+        sleeperBerth: 0,
+        driving: 0,
+        pc: 0,
+        ym: 0,
+      };
+      options.$and = [];
+      options.$and.push(
+        { meta: { $exists: true, $ne: null } },
+
+        { tenantId: tenantId },
+      );
+      const query = this.unitService.findData(options);
+      const queryResponse = await query.exec();
+      for (const user of queryResponse) {
+        if (user['_doc'].meta) {
+          const lastActivity = user['_doc']['meta']['lastActivity'];
+
+          if (lastActivity) {
+            if (
+              lastActivity.currentEventCode == '1' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.offDuty = status.offDuty + 1;
+            } else if (
+              lastActivity.currentEventCode == '2' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.sleeperBerth = status.sleeperBerth + 1;
+            } else if (
+              lastActivity.currentEventCode == '3' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.driving = status.driving + 1;
+            } else if (
+              lastActivity.currentEventCode == '4' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.onDuty = status.onDuty + 1;
+            } else if (
+              lastActivity.currentEventCode == '1' &&
+              lastActivity.currentEventType == '3'
+            ) {
+              status.pc = status.pc + 1;
+            } else if (
+              lastActivity.currentEventCode == '3' &&
+              lastActivity.currentEventType == '3'
+            ) {
+              status.ym = status.ym + 1;
+            }
+          }
+        }
+        // driverIDS.push(user['_doc']['driverId']);
+      }
+
+      return  status;
+    } catch (exception) {
+      return exception;
+    }
+  }
+
+  // get updated ststuses
   @MessagePattern({ cmd: 'update_unit_by_officeIDs' })
   async updateUnitByOfficeID(data: any) {
     try {
@@ -731,7 +800,6 @@ export class UnitController extends BaseController {
       const unit = await this.unitService.getOneUnit(options);
 
       const unitList = [];
-  
 
       let currentDate = moment().tz(unit.homeTerminalTimeZone.tzCode);
       const startOfWeek = currentDate.clone().startOf('isoWeek');
@@ -749,13 +817,12 @@ export class UnitController extends BaseController {
             { driverID: driverId, date: date },
           ),
         );
-       if(resu.data[0]){
-         
-         const dataObject = resu.data[0];
-         // Find the corresponding unit for the current dataObject's driverId
-         unit.violations = dataObject.violations;
-         unit.ptiType = dataObject.isPti;
-         unit.meta['clockData'] = dataObject?.clock;
+        if (resu.data[0]) {
+          const dataObject = resu.data[0];
+          // Find the corresponding unit for the current dataObject's driverId
+          unit.violations = dataObject.violations;
+          unit.ptiType = dataObject.isPti;
+          unit.meta['clockData'] = dataObject?.clock;
         }
         unitList.push(unit);
       }
@@ -1055,6 +1122,84 @@ export class UnitController extends BaseController {
               ? total
               : limit ?? 10),
         ),
+        message: 'Data found.',
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
+
+  // get listing of all units statuses
+  // for the traking
+  @allcurrentStatusesDecorators()
+  async allCurrentStatuses(
+    @Query(new ListingParamsValidationPipe()) queryParams,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
+      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
+      const status = {
+        onDuty: 0,
+        offDuty: 0,
+        sleeperBerth: 0,
+        driving: 0,
+        pc: 0,
+        ym: 0,
+      };
+      options.$and = [];
+      options.$and.push(
+        { meta: { $exists: true, $ne: null } },
+
+        { tenantId: id },
+      );
+      const query = this.unitService.findData(options);
+      const queryResponse = await query.exec();
+      for (const user of queryResponse) {
+        if (user['_doc'].meta) {
+          const lastActivity = user['_doc']['meta']['lastActivity'];
+
+          if (lastActivity) {
+            if (
+              lastActivity.currentEventCode == '1' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.offDuty = status.offDuty + 1;
+            } else if (
+              lastActivity.currentEventCode == '2' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.sleeperBerth = status.sleeperBerth + 1;
+            } else if (
+              lastActivity.currentEventCode == '3' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.driving = status.driving + 1;
+            } else if (
+              lastActivity.currentEventCode == '4' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.onDuty = status.onDuty + 1;
+            } else if (
+              lastActivity.currentEventCode == '1' &&
+              lastActivity.currentEventType == '3'
+            ) {
+              status.pc = status.pc + 1;
+            } else if (
+              lastActivity.currentEventCode == '3' &&
+              lastActivity.currentEventType == '3'
+            ) {
+              status.ym = status.ym + 1;
+            }
+          }
+        }
+        // driverIDS.push(user['_doc']['driverId']);
+      }
+
+      return response.status(HttpStatus.OK).send({
+        data: status,
         message: 'Data found.',
       });
     } catch (error) {
