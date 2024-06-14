@@ -227,6 +227,8 @@ export class UnitService extends BaseService<UnitDocument> {
     }
   };
 
+
+  
   updateTerminal = async (
     driverId: string,
     option = {},
@@ -424,6 +426,14 @@ export class UnitService extends BaseService<UnitDocument> {
   getUnitById = async (driverId: string): Promise<UnitDocument> => {
     try {
       return await this.unitModel.findOne({ driverId: driverId });
+    } catch (err) {
+      this.logger.error({ message: err.message, stack: err.stack });
+      throw err;
+    }
+  };
+  getOneUnit = async (option): Promise<UnitDocument> => {
+    try {
+      return await this.unitModel.findOne(option).lean();
     } catch (err) {
       this.logger.error({ message: err.message, stack: err.stack });
       throw err;

@@ -49,6 +49,7 @@ import { TrackingListing } from './models/trackingListing';
 import { HOSData } from 'models/HOSData';
 import GetByIdDecorators from 'decorators/unitsgetById';
 import moment from 'moment';
+import 'moment-timezone';
 import UpdateByIdDecorators from 'decorators/updateUnitById';
 import { getUnitByDriverId } from 'util/getById';
 import { UnitEditRequest } from 'models/editUnitRequestModel';
@@ -68,7 +69,7 @@ import { firstValueFrom, filter } from 'rxjs';
 import { VehicleDeviceRequest } from 'models/vehicleDeviceRequest';
 import { CoDriverUnitUpdateRequest } from 'models/coDriverUnitRequest';
 import GetAllUnitsDecorators from 'decorators/getAllUnits';
-
+import GetDrivers7daysDecorators from 'decorators/get7daysData';
 @Controller('units')
 @ApiTags('Units')
 export class UnitController extends BaseController {
@@ -543,7 +544,7 @@ export class UnitController extends BaseController {
     }
   }
 
-  // log listing endpoint 
+  // log listing endpoint
   @GetAllUnitsDecorators()
   async getAllDrivers(
     @Query(new ListingParamsValidationPipe()) queryParams,
@@ -663,7 +664,7 @@ export class UnitController extends BaseController {
             //   );
             matchingUnit.violations = dataObject.violations;
             matchingUnit.ptiType = dataObject.isPti;
-            matchingUnit.meta["clockData"] = dataObject?.clock
+            matchingUnit.meta['clockData'] = dataObject?.clock;
             //   // Do something with the matching unit and dataObject
             //   matchingUnit.violations = dataObject.violations;
             //   matchingUnit.ptiType = dataObject.isPti;
@@ -705,7 +706,69 @@ export class UnitController extends BaseController {
     }
   }
 
+  @GetDrivers7daysDecorators()
+  async getDrivers7days(
+    @Query(new ListingParamsValidationPipe()) queryParams,
+    @Query('driverId') driverId: string,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
 
+      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
+      const { user } = request;
+      options.$and = [];
+      options.$and.push(
+        { driverId: driverId },
+
+        { tenantId: id },
+      );
+
+      Logger.log(
+        `Calling find method of Unit service with search options to get query.`,
+      );
+      const unit = await this.unitService.getOneUnit(options);
+
+      const unitList = [];
+  
+
+      let currentDate = moment().tz(unit.homeTerminalTimeZone.tzCode);
+      const startOfWeek = currentDate.clone().startOf('isoWeek');
+      const previous7Days = [];
+      // Populate the array with the dates of the previous 7 days
+      for (let i = 1; i <= 7; i++) {
+        previous7Days.push(
+          currentDate.clone().subtract(i, 'days').format('YYYY-MM-DD'),
+        );
+      }
+      for (const date of previous7Days) {
+        const resu = await firstValueFrom<MessagePatternResponseType>(
+          this.hosClient.send(
+            { cmd: 'get_recordTable' },
+            { driverID: driverId, date: date },
+          ),
+        );
+       if(resu.data[0]){
+         
+         const dataObject = resu.data[0];
+         // Find the corresponding unit for the current dataObject's driverId
+         unit.violations = dataObject.violations;
+         unit.ptiType = dataObject.isPti;
+         unit.meta['clockData'] = dataObject?.clock;
+        }
+        unitList.push(unit);
+      }
+
+      return response.status(HttpStatus.OK).send({
+        data: unitList,
+        message: 'Data found.',
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
   @GetDecorators()
   async getDrivers(
     @Query(new ListingParamsValidationPipe()) queryParams,
@@ -826,9 +889,9 @@ export class UnitController extends BaseController {
             //     ),
             //   );
             //   // Do something with the matching unit and dataObject
-              matchingUnit.violations = dataObject.violations;
-              matchingUnit.ptiType = dataObject.isPti;
-              matchingUnit.meta["clockData"] = dataObject?.clock
+            matchingUnit.violations = dataObject.violations;
+            matchingUnit.ptiType = dataObject.isPti;
+            matchingUnit.meta['clockData'] = dataObject?.clock;
             //   console.log('\n\n' + ('shippingDocument' in logform));
             //   console.log('\n\n' + 'sign' in logform);
             //   // Check for shippingDocument key
@@ -1046,7 +1109,7 @@ export class UnitController extends BaseController {
       options.$and = [];
       options.$and.push(
         { meta: { $exists: true, $ne: null } },
-       
+
         { tenantId: id },
       );
 
@@ -1085,18 +1148,15 @@ export class UnitController extends BaseController {
       const driverIDS = [];
       let lastActivity;
       for (const user of queryResponse) {
-        if(user['_doc'].meta){
-        const lastActivity  = user['_doc']["meta"]["lastActivity"]
+        if (user['_doc'].meta) {
+          const lastActivity = user['_doc']['meta']['lastActivity'];
 
-      
-        if(user['_doc']["meta"]["lastActivity"]){
-
-          unitList.push(new TrackingListing(user));
+          if (user['_doc']['meta']['lastActivity']) {
+            unitList.push(new TrackingListing(user));
+          }
         }
-      }
         // driverIDS.push(user['_doc']['driverId']);
       }
-     
 
       return response.status(HttpStatus.OK).send({
         data: unitList,
@@ -1342,6 +1402,4 @@ export class UnitController extends BaseController {
       return error;
     }
   }
-
- 
 }
