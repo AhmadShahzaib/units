@@ -227,8 +227,6 @@ export class UnitService extends BaseService<UnitDocument> {
     }
   };
 
-
-  
   updateTerminal = async (
     driverId: string,
     option = {},
@@ -348,15 +346,13 @@ export class UnitService extends BaseService<UnitDocument> {
       .exec();
   };
 
-  updateDriverStatus = async (driverId: string, isActive: boolean) => {
+  updateDriverStatus = async (driverId: string, dataUpdate: any) => {
     try {
       return await this.unitModel.findOneAndUpdate(
         {
           driverId,
         },
-        {
-          isDriverActive: isActive,
-        },
+        dataUpdate,
         {
           new: true,
         },
