@@ -363,13 +363,13 @@ export class UnitController extends BaseController {
   }
 
   @EventPattern({ cmd: 'change_driver_status' })
-  async tcp_changeDriverStatus(data: Record<string, string>) {
+  async tcp_changeDriverStatus(data: Record<string, any>) {
     try {
-      const { isActive, driverId } = data;
+      const { dataUpdate, driverId } = data;
       if (driverId && Types.ObjectId.isValid(driverId)) {
         const resp = await this.unitService.updateDriverStatus(
           driverId,
-          Boolean(isActive),
+          dataUpdate,
         );
         if (resp) {
           return true;
@@ -523,7 +523,7 @@ export class UnitController extends BaseController {
   async getAllCurrentStatuses(tenantId: any) {
     try {
       const options: FilterQuery<UnitDocument> = {};
-     
+
       const status = {
         onDuty: 0,
         offDuty: 0,
@@ -581,7 +581,7 @@ export class UnitController extends BaseController {
         // driverIDS.push(user['_doc']['driverId']);
       }
 
-      return  status;
+      return status;
     } catch (exception) {
       return exception;
     }
