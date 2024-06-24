@@ -837,7 +837,8 @@ export class UnitController extends BaseController {
           tableData.clocks = dataObject?.clock;
         
           tableData.date = dataObject?.date;
-          tableData['vehicleId']= unit.vehicleId
+          tableData['vehicleId']= unit.manualVehicleId
+          tableData['driverId']= unit.driverId
           let lastActicity = unit.meta['lastActivity']
           tableData.status = {currentEventCode: lastActicity.currentEventCode,currentEventType :lastActicity.currentEventType }
           tableData.location = lastActicity.address;
