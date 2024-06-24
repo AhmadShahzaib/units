@@ -718,36 +718,11 @@ export class UnitController extends BaseController {
           );
 
           if (matchingUnit) {
-            // date:any,driverId:any,tenantId,companyTimeZone
-            //   const logform = await firstValueFrom<MessagePatternResponseType>(
-            //     this.reportService.send(
-            //       { cmd: 'get_logform' },
-            //       {
-            //         date: date,
-            //         driverId: matchingUnit.driverId,
-            //         tenantId: matchingUnit.tenantId,
-            //         companyTimeZone:
-            //           matchingUnit.homeTerminalTimeZone['_doc']['tzCode'],
-            //       },
-            //     ),
-            //   );
+           
             matchingUnit.violations = dataObject.violations;
             matchingUnit.ptiType = dataObject.isPti;
             matchingUnit.meta['clockData'] = dataObject?.clock;
-            //   // Do something with the matching unit and dataObject
-            //   matchingUnit.violations = dataObject.violations;
-            //   matchingUnit.ptiType = dataObject.isPti;
-            //   console.log('\n\n' + ('shippingDocument' in logform));
-            //   console.log('\n\n' + 'sign' in logform);
-            //   // Check for shippingDocument key
-            //   matchingUnit.violations.push({
-            //     isShippingID: 'shippingDocument' in logform?.data,
-            //   });
-            //   // Check for sign key
-            //   matchingUnit.violations.push({
-            //     isSignature: 'sign' in logform?.data,
-            //   });
-            //   console.log(`Driver ${matchingUnit} has data: `, dataObject);
+            
           } else {
             //   // Handle the case where no matching unit is found
             console.log(
