@@ -827,7 +827,7 @@ export class UnitController extends BaseController {
           unit.violations = dataObject.violations;
           unit.ptiType = dataObject.isPti;
           Logger.log("clock data in Record table ------------",dataObject?.clock)
-          unit.meta['clocks'] = dataObject?.clock;
+          unit.meta['clockData'] = dataObject?.clock;
           Logger.log("clock data in meta  ------------", unit.meta['clockData'])
           unit.meta['date'] = dataObject?.date
         }
