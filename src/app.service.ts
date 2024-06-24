@@ -649,7 +649,7 @@ export class UnitService extends BaseService<UnitDocument> {
     );
 
     if (metaUpdated.acknowledged && metaUpdated.matchedCount == 1) {
-      console.log('meta for user updated');
+     
       return true;
     }
     console.log('meta for user not updated');
