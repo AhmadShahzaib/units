@@ -813,8 +813,8 @@ export class UnitController extends BaseController {
             currentDate: lastActicity.currentDate,
           };
           tableData['location'] = lastActicity.address;
+          unitList.push(tableData);
         }
-        unitList.push(tableData);
       }
 
       return response.status(HttpStatus.OK).send({
