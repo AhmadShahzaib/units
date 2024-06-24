@@ -819,16 +819,17 @@ export class UnitController extends BaseController {
         location: '',
         clocks: {},
       };
+      let recordData
       for (const date of previous7Days) {
-        const resu = await firstValueFrom<MessagePatternResponseType>(
+        recordData = await firstValueFrom<MessagePatternResponseType>(
           this.hosClient.send(
             { cmd: 'get_recordTable' },
             { driverID: driverId, date: date },
           ),
         );
 
-        if (resu.data[0]) {
-          const dataObject = resu.data[0];
+        if (recordData.data[0]) {
+          const dataObject = recordData.data[0];
           // Find the corresponding unit for the current dataObject's driverId
           tableData.violations = dataObject.violations;
           tableData.ptiType = dataObject.isPti;
