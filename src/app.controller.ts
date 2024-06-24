@@ -810,8 +810,8 @@ export class UnitController extends BaseController {
           currentDate.clone().subtract(i, 'days').format('YYYY-MM-DD'),
         );
       }
-      Logger.log("here are the past dates")
-      console.log(previous7Days)
+     
+     
       for (const date of previous7Days) {
         const resu = await firstValueFrom<MessagePatternResponseType>(
           this.hosClient.send(
@@ -819,7 +819,7 @@ export class UnitController extends BaseController {
             { driverID: driverId, date: date },
           ),
         );
-      console.log(resu.data[0])
+      
 
         if (resu.data[0]) {
           const dataObject = resu.data[0];
@@ -827,6 +827,7 @@ export class UnitController extends BaseController {
           unit.violations = dataObject.violations;
           unit.ptiType = dataObject.isPti;
           unit.meta['clockData'] = dataObject?.clock;
+          unit.meta['date'] = dataObject?.date
         }
         unitList.push(unit);
       }
