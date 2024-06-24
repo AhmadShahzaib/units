@@ -826,7 +826,7 @@ export class UnitController extends BaseController {
           // Find the corresponding unit for the current dataObject's driverId
           unit.violations = dataObject.violations;
           unit.ptiType = dataObject.isPti;
-          unit.meta['clockData'] = dataObject?.clock;
+          unit.meta['clocks'] = dataObject?.clock;
           unit.meta['date'] = dataObject?.date
         }
         unitList.push(unit);
