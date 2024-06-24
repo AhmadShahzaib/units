@@ -477,7 +477,7 @@ export class UnitController extends BaseController {
         ],
       };
       const unit = await this.unitService.findUnit(options);
-      console.log(`vehicel ---------------------- `, unit);
+      // console.log(`vehicel ---------------------- `, unit);
 
       return unit;
     } catch (exception) {
@@ -500,7 +500,7 @@ export class UnitController extends BaseController {
       //   options = { [key]: { $ne: null }, driverId: { $ne: null } };
       // }
       const unit = await this.unitService.findUnits(options);
-      console.log(`vehicel ---------------------- `, unit);
+      // console.log(`vehicel ---------------------- `, unit);
 
       return unit;
     } catch (exception) {
@@ -512,7 +512,7 @@ export class UnitController extends BaseController {
     try {
       // }
       const unit = await this.unitService.findUnitsWithOffice(officeID);
-      console.log(`vehicel ---------------------- `, unit);
+      // console.log(`vehicel ---------------------- `, unit);
 
       return unit;
     } catch (exception) {
@@ -596,7 +596,7 @@ export class UnitController extends BaseController {
         filter,
         updateOperation,
       );
-      console.log(`vehicel ---------------------- `, unit);
+      // console.log(`vehicel ---------------------- `, unit);
 
       return unit;
     } catch (exception) {
