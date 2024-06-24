@@ -718,11 +718,9 @@ export class UnitController extends BaseController {
           );
 
           if (matchingUnit) {
-           
             matchingUnit.violations = dataObject.violations;
             matchingUnit.ptiType = dataObject.isPti;
             matchingUnit.meta['clockData'] = dataObject?.clock;
-            
           } else {
             //   // Handle the case where no matching unit is found
             console.log(
@@ -813,7 +811,20 @@ export class UnitController extends BaseController {
           tableData['ptiType'] = dataObject.isPti;
           tableData['clocks'] = dataObject?.clock;
           tableData['date'] = dataObject?.date;
-         
+        } else {
+          tableData['violations'] = '';
+          tableData['ptiType'] = '';
+          tableData['clocks'] = {
+            breakSeconds: 0,
+            cycleSeconds: 0,
+            driveSeconds: 0,
+            driveSecondsSplit: 0,
+            recapeClock: 0,
+            shiftDutySecond: 0,
+
+            shiftDutySecondsSplit: 0,
+          };
+          tableData['date'] = '';
         }
         unitList.push(tableData);
       }
