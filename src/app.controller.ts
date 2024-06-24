@@ -810,8 +810,15 @@ export class UnitController extends BaseController {
           currentDate.clone().subtract(i, 'days').format('YYYY-MM-DD'),
         );
       }
-     
-     
+      let tableData = {
+        date: '',
+       
+        violations: {},
+        ptiType: '',
+        status: {},
+        location: '',
+        clocks: {},
+      };
       for (const date of previous7Days) {
         const resu = await firstValueFrom<MessagePatternResponseType>(
           this.hosClient.send(
@@ -819,19 +826,22 @@ export class UnitController extends BaseController {
             { driverID: driverId, date: date },
           ),
         );
-      
 
         if (resu.data[0]) {
           const dataObject = resu.data[0];
           // Find the corresponding unit for the current dataObject's driverId
-          unit.violations = dataObject.violations;
-          unit.ptiType = dataObject.isPti;
-          Logger.log("clock data in Record table ------------",dataObject?.clock)
-          unit.meta['clockData'] = dataObject?.clock;
-          Logger.log("clock data in meta  ------------", unit.meta['clockData'])
-          unit.meta['date'] = dataObject?.date
+          tableData.violations = dataObject.violations;
+          tableData.ptiType = dataObject.isPti;
+         
+          tableData.clocks = dataObject?.clock;
+        
+          tableData.date = dataObject?.date;
+          tableData['vehicleId']= unit.vehicleId
+          let lastActicity = unit.meta['lastActivity']
+          tableData.status = {currentEventCode: lastActicity.currentEventCode,currentEventType :lastActicity.currentEventType }
+          tableData.location = lastActicity.address;
         }
-        unitList.push(unit);
+        unitList.push(tableData);
       }
 
       return response.status(HttpStatus.OK).send({
