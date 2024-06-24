@@ -810,6 +810,8 @@ export class UnitController extends BaseController {
           currentDate.clone().subtract(i, 'days').format('YYYY-MM-DD'),
         );
       }
+      Logger.log("here are the past dates")
+      console.log(previous7Days)
       for (const date of previous7Days) {
         const resu = await firstValueFrom<MessagePatternResponseType>(
           this.hosClient.send(
@@ -817,6 +819,8 @@ export class UnitController extends BaseController {
             { driverID: driverId, date: date },
           ),
         );
+      console.log(resu.data[0])
+
         if (resu.data[0]) {
           const dataObject = resu.data[0];
           // Find the corresponding unit for the current dataObject's driverId
@@ -880,7 +884,7 @@ export class UnitController extends BaseController {
 
       options.$and = [];
       options.$and.push(
-        { deviceId: { $exists: true, $ne: null } },
+        // { deviceId: { $exists: true, $ne: null } },
         { driverId: { $exists: true, $ne: null } },
         { vehicleId: { $exists: true, $ne: null } },
         { tenantId: id },
@@ -941,41 +945,41 @@ export class UnitController extends BaseController {
             (unit) => unit.driverId == dataObject.driverId,
           );
 
-          if (matchingUnit) {
-            // date:any,driverId:any,tenantId,companyTimeZone
-            //   const logform = await firstValueFrom<MessagePatternResponseType>(
-            //     this.reportService.send(
-            //       { cmd: 'get_logform' },
-            //       {
-            //         date: date,
-            //         driverId: matchingUnit.driverId,
-            //         tenantId: matchingUnit.tenantId,
-            //         companyTimeZone:
-            //           matchingUnit.homeTerminalTimeZone['_doc']['tzCode'],
-            //       },
-            //     ),
-            //   );
-            //   // Do something with the matching unit and dataObject
-            matchingUnit.violations = dataObject.violations;
-            matchingUnit.ptiType = dataObject.isPti;
-            matchingUnit.meta['clockData'] = dataObject?.clock;
-            //   console.log('\n\n' + ('shippingDocument' in logform));
-            //   console.log('\n\n' + 'sign' in logform);
-            //   // Check for shippingDocument key
-            //   matchingUnit.violations.push({
-            //     isShippingID: 'shippingDocument' in logform?.data,
-            //   });
-            //   // Check for sign key
-            //   matchingUnit.violations.push({
-            //     isSignature: 'sign' in logform?.data,
-            //   });
-            //   console.log(`Driver ${matchingUnit} has data: `, dataObject);
-          } else {
-            //   // Handle the case where no matching unit is found
-            console.log(
-              `No matching unit found for driverId ${dataObject.driverId}`,
-            );
-          }
+          // if (matchingUnit) {
+          //   // date:any,driverId:any,tenantId,companyTimeZone
+          //   //   const logform = await firstValueFrom<MessagePatternResponseType>(
+          //   //     this.reportService.send(
+          //   //       { cmd: 'get_logform' },
+          //   //       {
+          //   //         date: date,
+          //   //         driverId: matchingUnit.driverId,
+          //   //         tenantId: matchingUnit.tenantId,
+          //   //         companyTimeZone:
+          //   //           matchingUnit.homeTerminalTimeZone['_doc']['tzCode'],
+          //   //       },
+          //   //     ),
+          //   //   );
+          //   //   // Do something with the matching unit and dataObject
+          //   matchingUnit.violations = dataObject.violations;
+          //   matchingUnit.ptiType = dataObject.isPti;
+          //   matchingUnit.meta['clockData'] = dataObject?.clock;
+          //   //   console.log('\n\n' + ('shippingDocument' in logform));
+          //   //   console.log('\n\n' + 'sign' in logform);
+          //   //   // Check for shippingDocument key
+          //   //   matchingUnit.violations.push({
+          //   //     isShippingID: 'shippingDocument' in logform?.data,
+          //   //   });
+          //   //   // Check for sign key
+          //   //   matchingUnit.violations.push({
+          //   //     isSignature: 'sign' in logform?.data,
+          //   //   });
+          //   //   console.log(`Driver ${matchingUnit} has data: `, dataObject);
+          // } else {
+          //   //   // Handle the case where no matching unit is found
+          //   console.log(
+          //     `No matching unit found for driverId ${dataObject.driverId}`,
+          //   );
+          // }
         }
       }
 
