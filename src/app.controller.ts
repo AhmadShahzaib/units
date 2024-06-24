@@ -795,26 +795,27 @@ export class UnitController extends BaseController {
           ),
         );
 
+        tableData = {};
+        tableData['vehicleId'] = unit.manualVehicleId;
+        tableData['driverId'] = unit.driverId;
+        let lastActicity = unit.meta['lastActivity'];
+        tableData['status'] = {
+          currentEventCode: lastActicity.currentEventCode,
+          currentEventType: lastActicity.currentEventType,
+          currentTime: lastActicity.currentTime,
+          currentDate: lastActicity.currentDate,
+        };
+        tableData['location'] = lastActicity.address;
         if (recordData.data[0]) {
           const dataObject = recordData.data[0];
-          tableData = {};
           // Find the corresponding unit for the current dataObject's driverId
           tableData['violations'] = dataObject.violations;
           tableData['ptiType'] = dataObject.isPti;
           tableData['clocks'] = dataObject?.clock;
           tableData['date'] = dataObject?.date;
-          tableData['vehicleId'] = unit.manualVehicleId;
-          tableData['driverId'] = unit.driverId;
-          let lastActicity = unit.meta['lastActivity'];
-          tableData['status'] = {
-            currentEventCode: lastActicity.currentEventCode,
-            currentEventType: lastActicity.currentEventType,
-            currentTime: lastActicity.currentTime,
-            currentDate: lastActicity.currentDate,
-          };
-          tableData['location'] = lastActicity.address;
-          unitList.push(tableData);
+         
         }
+        unitList.push(tableData);
       }
 
       return response.status(HttpStatus.OK).send({
