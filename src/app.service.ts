@@ -137,18 +137,18 @@ export class UnitService extends BaseService<UnitDocument> {
     }
   };
   updateDriversVehicle = async (
-    driverId: String,
-    vehicleId: String,
-    coDriverId: String = null,
-    firstName: String,
-    lastName: String,
-    manualDriverId: String,
-    driverLicense: String,
-    trailerNumber: String,
-    driverUserName: String,
-    driverLicenseState: String,
-    homeTerminalAddress: String,
-    headOffice: String,
+    driverId: string,
+    vehicleId: string,
+    coDriverId: string = null,
+    firstName: string,
+    lastName: string,
+    manualDriverId: string,
+    driverLicense: string,
+    trailerNumber: string,
+    driverUserName: string,
+    driverLicenseState: string,
+    homeTerminalAddress: string,
+    headOffice: string,
     homeTerminalTimeZone: string | TimeZone,
     headOfficeId: string,
     homeTerminalAddressId: string,
@@ -232,7 +232,7 @@ export class UnitService extends BaseService<UnitDocument> {
     option = {},
     upsert: boolean = true,
   ): Promise<any> => {
-    let updated = await this.unitModel.findOneAndUpdate(
+    const updated = await this.unitModel.findOneAndUpdate(
       {
         driverId: driverId,
       },
@@ -346,15 +346,13 @@ export class UnitService extends BaseService<UnitDocument> {
       .exec();
   };
 
-  updateDriverStatus = async (driverId: string, isActive: boolean) => {
+  updateDriverStatus = async (driverId: string, dataUpdate: any) => {
     try {
       return await this.unitModel.findOneAndUpdate(
         {
           driverId,
         },
-        {
-          isDriverActive: isActive,
-        },
+        dataUpdate,
         {
           new: true,
         },
@@ -424,6 +422,14 @@ export class UnitService extends BaseService<UnitDocument> {
   getUnitById = async (driverId: string): Promise<UnitDocument> => {
     try {
       return await this.unitModel.findOne({ driverId: driverId });
+    } catch (err) {
+      this.logger.error({ message: err.message, stack: err.stack });
+      throw err;
+    }
+  };
+  getOneUnit = async (option): Promise<UnitDocument> => {
+    try {
+      return await this.unitModel.findOne(option).lean();
     } catch (err) {
       this.logger.error({ message: err.message, stack: err.stack });
       throw err;
@@ -503,7 +509,7 @@ export class UnitService extends BaseService<UnitDocument> {
     homeTerminalAddress: string,
   ) => {
     try {
-      let data = await this.unitModel.findOneAndUpdate(
+      const data = await this.unitModel.findOneAndUpdate(
         { driverId: driverId },
         {
           homeTerminalAddressId: homeTerminalAddressId,
@@ -576,7 +582,7 @@ export class UnitService extends BaseService<UnitDocument> {
    * Author: Farzan
    * Get units on basis of Vin and extract deviceToken from deviceId
    */
-  getUnitsByVin = async (vin: String) => {
+  getUnitsByVin = async (vin: string) => {
     console.log(`IM in units service`);
 
     const units = await this.unitModel.find({
@@ -643,7 +649,7 @@ export class UnitService extends BaseService<UnitDocument> {
     );
 
     if (metaUpdated.acknowledged && metaUpdated.matchedCount == 1) {
-      console.log('meta for user updated');
+     
       return true;
     }
     console.log('meta for user not updated');

@@ -8,47 +8,16 @@ import {
   UNITS,DRIVER
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import { sortableAttributes } from '../models';
-const responseExample = {
-  data: [
-    {
-      id: '62e3650bd9aa36f826be8a9b',
-      driverId: '62e3772a82708ee2d74dd2c1',
-      vehicleId: '62e3673b097580273888b650',
-      deviceId: '62e3650b0e7e6d3d2f5be453',
-      deviceVendor: 'ALI',
-      deviceSerialNo: 'SR-06',
-      vehicleLicensePlateNo: 'ALI-05',
-      vehicleMake: 'HONDA',
-      manualVehicleId: 'V-05',
-      eldNo: 'E-06',
-      manualDriverId: 'driver-john-doe',
-      driverFirstName: 'Library',
-      driverLastName: 'Doe',
-      isDriverActive: true,
-      isVehicleActive: true,
-      isDeviceActive: true,
-      isActive: true,
-    },
-  ],
-  total: 5,
-  pageNo: 1,
-  last_page: 1,
-};
 
-export default function GetDecorators() {
-  const GetDecorators: Array<CombineDecoratorType> = [
-    Get(),
+
+export default function allcurrentStatusesDecorators() {
+  const allcurrentStatusesDecorators: Array<CombineDecoratorType> = [
+    Get("/allcurrentStatuses"),
     SetMetadata('permissions', [DRIVER.LIST]),
     ApiBearerAuth('access-token'),
     ApiResponse({
       status: HttpStatus.OK,
-      content: {
-        'application/json': {
-          examples: {
-            'example 1': { value: responseExample },
-          },
-        },
-      },
+     
     }),
     ApiQuery({
       name: 'search',
@@ -75,5 +44,5 @@ export default function GetDecorators() {
       required: false,
     }),
   ];
-  return CombineDecorators(GetDecorators);
+  return CombineDecorators(allcurrentStatusesDecorators);
 }

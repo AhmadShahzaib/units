@@ -40,7 +40,7 @@ import {
 import { DeviceVehicleRequest } from 'models/deviceVehicle';
 import GetDecorators from './decorators/getUnits';
 import GetTrackingDecorators from './decorators/getTrcaking';
-
+import allcurrentStatusesDecorators from './decorators/allcurrentStatuses';
 import { searchableAttributes } from './models';
 import { sortableAttributes } from './models';
 import { UnitResponse } from './models/unitResponse.model';
@@ -49,6 +49,7 @@ import { TrackingListing } from './models/trackingListing';
 import { HOSData } from 'models/HOSData';
 import GetByIdDecorators from 'decorators/unitsgetById';
 import moment from 'moment';
+import 'moment-timezone';
 import UpdateByIdDecorators from 'decorators/updateUnitById';
 import { getUnitByDriverId } from 'util/getById';
 import { UnitEditRequest } from 'models/editUnitRequestModel';
@@ -68,7 +69,7 @@ import { firstValueFrom, filter } from 'rxjs';
 import { VehicleDeviceRequest } from 'models/vehicleDeviceRequest';
 import { CoDriverUnitUpdateRequest } from 'models/coDriverUnitRequest';
 import GetAllUnitsDecorators from 'decorators/getAllUnits';
-
+import GetDrivers7daysDecorators from 'decorators/get7daysData';
 @Controller('units')
 @ApiTags('Units')
 export class UnitController extends BaseController {
@@ -226,7 +227,7 @@ export class UnitController extends BaseController {
   async tcp_isVehicleAssigned(data: Record<string, string>): Promise<any> {
     try {
       const { vehicleId, driverId } = data;
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [{ vehicleId }, { driverId: { $ne: null } }],
       };
       if (driverId) {
@@ -280,7 +281,7 @@ export class UnitController extends BaseController {
       }
       const assign = await this.unitService.findUnitsWithVehicles(options);
       if (assign && assign.length > 0) {
-        let returnObject = { vehicleId: '', deviceId: '' };
+        const returnObject = { vehicleId: '', deviceId: '' };
         return assign.map(function (item) {
           returnObject.vehicleId = item['manualVehicleId'];
           returnObject.deviceId = item['deviceId'];
@@ -298,7 +299,7 @@ export class UnitController extends BaseController {
   async tcp_isDeviceAssigned(data: Record<string, string>): Promise<any> {
     try {
       const { deviceId, vehicleId } = data;
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [{ deviceId }, { vehicleId: { $ne: null } }],
       };
       if (vehicleId) {
@@ -328,7 +329,7 @@ export class UnitController extends BaseController {
       };
       const assign = await this.unitService.findOne(options);
       if (assign && Object.keys(assign).length > 0) {
-        let carrier = await this.unitService.getCompany(assign.tenantId);
+        const carrier = await this.unitService.getCompany(assign.tenantId);
         if (carrier) {
           assign['_doc']['carrier'] = carrier.name;
           assign['_doc']['usDot'] = carrier.usdot;
@@ -362,13 +363,13 @@ export class UnitController extends BaseController {
   }
 
   @EventPattern({ cmd: 'change_driver_status' })
-  async tcp_changeDriverStatus(data: Record<string, string>) {
+  async tcp_changeDriverStatus(data: Record<string, any>) {
     try {
-      const { isActive, driverId } = data;
+      const { dataUpdate, driverId } = data;
       if (driverId && Types.ObjectId.isValid(driverId)) {
         const resp = await this.unitService.updateDriverStatus(
           driverId,
-          Boolean(isActive),
+          dataUpdate,
         );
         if (resp) {
           return true;
@@ -442,7 +443,7 @@ export class UnitController extends BaseController {
   @MessagePattern({ cmd: 'is_unit_active' })
   async tcp_isUnitActive(driverId: string): Promise<any> {
     try {
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [
           { driverId },
           { isDriverActive: true },
@@ -468,7 +469,7 @@ export class UnitController extends BaseController {
   @MessagePattern({ cmd: 'get_unit_by_driverId' })
   async tcp_getUnitByDriverId(driverId: string) {
     try {
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [
           { driverId },
           { isDriverActive: true },
@@ -476,7 +477,7 @@ export class UnitController extends BaseController {
         ],
       };
       const unit = await this.unitService.findUnit(options);
-      console.log(`vehicel ---------------------- `, unit);
+      // console.log(`vehicel ---------------------- `, unit);
 
       return unit;
     } catch (exception) {
@@ -486,7 +487,7 @@ export class UnitController extends BaseController {
   @MessagePattern({ cmd: 'get_unit_by_vehicleID' })
   async tcp_getUnitByvehicleIDehicleID(vehicleId: string, tenantId) {
     try {
-      let options: FilterQuery<UnitDocument> = {
+      const options: FilterQuery<UnitDocument> = {
         $and: [
           { vehicleId },
           // { isDriverActive: true },
@@ -499,7 +500,7 @@ export class UnitController extends BaseController {
       //   options = { [key]: { $ne: null }, driverId: { $ne: null } };
       // }
       const unit = await this.unitService.findUnits(options);
-      console.log(`vehicel ---------------------- `, unit);
+      // console.log(`vehicel ---------------------- `, unit);
 
       return unit;
     } catch (exception) {
@@ -511,13 +512,82 @@ export class UnitController extends BaseController {
     try {
       // }
       const unit = await this.unitService.findUnitsWithOffice(officeID);
-      console.log(`vehicel ---------------------- `, unit);
+      // console.log(`vehicel ---------------------- `, unit);
 
       return unit;
     } catch (exception) {
       return exception;
     }
   }
+  @MessagePattern({ cmd: 'get_all_current_statuses' })
+  async getAllCurrentStatuses(tenantId: any) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
+
+      const status = {
+        onDuty: 0,
+        offDuty: 0,
+        sleeperBerth: 0,
+        driving: 0,
+        pc: 0,
+        ym: 0,
+      };
+      options.$and = [];
+      options.$and.push(
+        { meta: { $exists: true, $ne: null } },
+
+        { tenantId: tenantId },
+      );
+      const query = this.unitService.findData(options);
+      const queryResponse = await query.exec();
+      for (const user of queryResponse) {
+        if (user['_doc'].meta) {
+          const lastActivity = user['_doc']['meta']['lastActivity'];
+
+          if (lastActivity) {
+            if (
+              lastActivity.currentEventCode == '1' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.offDuty = status.offDuty + 1;
+            } else if (
+              lastActivity.currentEventCode == '2' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.sleeperBerth = status.sleeperBerth + 1;
+            } else if (
+              lastActivity.currentEventCode == '3' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.driving = status.driving + 1;
+            } else if (
+              lastActivity.currentEventCode == '4' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.onDuty = status.onDuty + 1;
+            } else if (
+              lastActivity.currentEventCode == '1' &&
+              lastActivity.currentEventType == '3'
+            ) {
+              status.pc = status.pc + 1;
+            } else if (
+              lastActivity.currentEventCode == '3' &&
+              lastActivity.currentEventType == '3'
+            ) {
+              status.ym = status.ym + 1;
+            }
+          }
+        }
+        // driverIDS.push(user['_doc']['driverId']);
+      }
+
+      return status;
+    } catch (exception) {
+      return exception;
+    }
+  }
+
+  // get updated ststuses
   @MessagePattern({ cmd: 'update_unit_by_officeIDs' })
   async updateUnitByOfficeID(data: any) {
     try {
@@ -526,7 +596,7 @@ export class UnitController extends BaseController {
         filter,
         updateOperation,
       );
-      console.log(`vehicel ---------------------- `, unit);
+      // console.log(`vehicel ---------------------- `, unit);
 
       return unit;
     } catch (exception) {
@@ -536,14 +606,14 @@ export class UnitController extends BaseController {
   @MessagePattern({ cmd: 'get_company' })
   async tcp_getcompany(tenantId: string) {
     try {
-      let carrier = await this.unitService.getCompany(tenantId);
+      const carrier = await this.unitService.getCompany(tenantId);
       return carrier;
     } catch (exception) {
       return exception;
     }
   }
 
-  // log listing endpoint 
+  // log listing endpoint
   @GetAllUnitsDecorators()
   async getAllDrivers(
     @Query(new ListingParamsValidationPipe()) queryParams,
@@ -555,7 +625,7 @@ export class UnitController extends BaseController {
       const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
       let isActive = queryParams?.isActive;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      let arr = [];
+      const arr = [];
       arr.push(isActive);
       if (arr.includes('true')) {
         isActive = true;
@@ -617,14 +687,14 @@ export class UnitController extends BaseController {
       if (!limit || !isNaN(limit)) {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
-      let queryResponse = await query.exec();
+      const queryResponse = await query.exec();
       console.log(
         `Resuts ----------------------------------------- `,
         queryResponse,
       );
 
       const unitList: UnitResponse[] = [];
-      let driverIDS = [];
+      const driverIDS = [];
       for (const user of queryResponse) {
         unitList.push(new UnitResponse(user));
         driverIDS.push(user['_doc']['driverId']);
@@ -648,36 +718,9 @@ export class UnitController extends BaseController {
           );
 
           if (matchingUnit) {
-            // date:any,driverId:any,tenantId,companyTimeZone
-            //   const logform = await firstValueFrom<MessagePatternResponseType>(
-            //     this.reportService.send(
-            //       { cmd: 'get_logform' },
-            //       {
-            //         date: date,
-            //         driverId: matchingUnit.driverId,
-            //         tenantId: matchingUnit.tenantId,
-            //         companyTimeZone:
-            //           matchingUnit.homeTerminalTimeZone['_doc']['tzCode'],
-            //       },
-            //     ),
-            //   );
             matchingUnit.violations = dataObject.violations;
             matchingUnit.ptiType = dataObject.isPti;
-            matchingUnit.meta["clockData"] = dataObject?.clock
-            //   // Do something with the matching unit and dataObject
-            //   matchingUnit.violations = dataObject.violations;
-            //   matchingUnit.ptiType = dataObject.isPti;
-            //   console.log('\n\n' + ('shippingDocument' in logform));
-            //   console.log('\n\n' + 'sign' in logform);
-            //   // Check for shippingDocument key
-            //   matchingUnit.violations.push({
-            //     isShippingID: 'shippingDocument' in logform?.data,
-            //   });
-            //   // Check for sign key
-            //   matchingUnit.violations.push({
-            //     isSignature: 'sign' in logform?.data,
-            //   });
-            //   console.log(`Driver ${matchingUnit} has data: `, dataObject);
+            matchingUnit.meta['clockData'] = dataObject?.clock;
           } else {
             //   // Handle the case where no matching unit is found
             console.log(
@@ -705,7 +748,96 @@ export class UnitController extends BaseController {
     }
   }
 
+  @GetDrivers7daysDecorators()
+  async getDrivers7days(
+    @Query(new ListingParamsValidationPipe()) queryParams,
+    @Query('driverId') driverId: string,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
 
+      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
+      const { user } = request;
+      options.$and = [];
+      options.$and.push(
+        { driverId: driverId },
+
+        { tenantId: id },
+      );
+
+      Logger.log(
+        `Calling find method of Unit service with search options to get query.`,
+      );
+      const unit = await this.unitService.getOneUnit(options);
+
+      const unitList = [];
+
+      let currentDate = moment().tz(unit.homeTerminalTimeZone.tzCode);
+      const startOfWeek = currentDate.clone().startOf('isoWeek');
+      const previous7Days = [];
+      // Populate the array with the dates of the previous 7 days
+      for (let i = 1; i <= 7; i++) {
+        previous7Days.push(
+          currentDate.clone().subtract(i, 'days').format('YYYY-MM-DD'),
+        );
+      }
+      let tableData = {};
+      let recordData;
+      for (const date of previous7Days) {
+        recordData = await firstValueFrom<MessagePatternResponseType>(
+          this.hosClient.send(
+            { cmd: 'get_recordTable' },
+            { driverID: driverId, date: date },
+          ),
+        );
+
+        tableData = {};
+        tableData['vehicleId'] = unit.manualVehicleId;
+        tableData['driverId'] = unit.driverId;
+        let lastActicity = unit.meta['lastActivity'];
+        tableData['status'] = {
+          currentEventCode: lastActicity.currentEventCode,
+          currentEventType: lastActicity.currentEventType,
+          currentTime: lastActicity.currentTime,
+          currentDate: lastActicity.currentDate,
+        };
+        tableData['location'] = lastActicity.address;
+        if (recordData.data[0]) {
+          const dataObject = recordData.data[0];
+          // Find the corresponding unit for the current dataObject's driverId
+          tableData['violations'] = dataObject.violations;
+          tableData['ptiType'] = dataObject.isPti;
+          tableData['clocks'] = dataObject?.clock;
+          tableData['date'] = dataObject?.date;
+        } else {
+          tableData['violations'] = '';
+          tableData['ptiType'] = '';
+          tableData['clocks'] = {
+            breakSeconds: 0,
+            cycleSeconds: 0,
+            driveSeconds: 0,
+            driveSecondsSplit: 0,
+            recapeClock: 0,
+            shiftDutySecond: 0,
+
+            shiftDutySecondsSplit: 0,
+          };
+          tableData['date'] = '';
+        }
+        unitList.push(tableData);
+      }
+
+      return response.status(HttpStatus.OK).send({
+        data: unitList,
+        message: 'Data found.',
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
   @GetDecorators()
   async getDrivers(
     @Query(new ListingParamsValidationPipe()) queryParams,
@@ -717,169 +849,7 @@ export class UnitController extends BaseController {
       const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
       let isActive = queryParams?.isActive;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      let arr = [];
-      arr.push(isActive);
-      if (arr.includes('true')) {
-        isActive = true;
-      } else {
-        isActive = false;
-      }
-      // let isActive = false
-      // if(isActive === 'false'){}
-
-      if (search) {
-        options.$or = [];
-        searchableAttributes.forEach((attribute) => {
-          options.$or.push({ [attribute]: new RegExp(search, 'i') });
-        });
-        if (arr[0]) {
-          options['$and'] = [];
-          isActiveinActive.forEach((attribute) => {
-            options.$and.push({ [attribute]: isActive });
-          });
-        }
-      } else {
-        // options.$or.push({'isActive':isActive})
-        if (arr[0]) {
-          options.$or = [];
-          isActiveinActive.forEach((attribute) => {
-            options.$or.push({ [attribute]: isActive });
-          });
-        }
-      }
-
-      options.$and = [];
-      options.$and.push(
-        { deviceId: { $exists: true, $ne: null } },
-        { driverId: { $exists: true, $ne: null } },
-        { vehicleId: { $exists: true, $ne: null } },
-        { tenantId: id },
-      );
-
-      Logger.log(
-        `Calling find method of Unit service with search options to get query.`,
-      );
-      const query = this.unitService.findData(options);
-
-      Logger.log(`Adding sort options to query.`);
-      if (orderBy && sortableAttributes.includes(orderBy)) {
-        query.collation({ locale: 'en' }).sort({ [orderBy]: orderType ?? 1 });
-      } else {
-        query.sort({ updatedAt: -1 });
-      }
-
-      Logger.log(
-        `Calling count method of unit service with search options to get total count of records.`,
-      );
-      const total = await this.unitService.count(options);
-
-      Logger.log(
-        `Executing query with pagination. Skipping: ${
-          ((pageNo ?? 1) - 1) * (limit ?? 10)
-        }, Limit: ${limit ?? 10}`,
-      );
-      if (!limit || !isNaN(limit)) {
-        query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
-      }
-      let queryResponse = await query.exec();
-      console.log(
-        `Resuts ----------------------------------------- `,
-        queryResponse,
-      );
-
-      const unitList: UnitResponse[] = [];
-      let driverIDS = [];
-      for (const user of queryResponse) {
-        unitList.push(new UnitResponse(user));
-        driverIDS.push(user['_doc']['driverId']);
-      }
-      if (date) {
-        console.log('IN IF when date present');
-        const resu = await firstValueFrom<MessagePatternResponseType>(
-          this.hosClient.send(
-            { cmd: 'get_recordTable' },
-            { driverID: driverIDS, date: date },
-          ),
-        );
-
-        console.log('got record table');
-        for (let i = 0; i < resu.data.length; i++) {
-          const dataObject = resu.data[i];
-
-          // Find the corresponding unit for the current dataObject's driverId
-          const matchingUnit = unitList.find(
-            (unit) => unit.driverId == dataObject.driverId,
-          );
-
-          if (matchingUnit) {
-            // date:any,driverId:any,tenantId,companyTimeZone
-            //   const logform = await firstValueFrom<MessagePatternResponseType>(
-            //     this.reportService.send(
-            //       { cmd: 'get_logform' },
-            //       {
-            //         date: date,
-            //         driverId: matchingUnit.driverId,
-            //         tenantId: matchingUnit.tenantId,
-            //         companyTimeZone:
-            //           matchingUnit.homeTerminalTimeZone['_doc']['tzCode'],
-            //       },
-            //     ),
-            //   );
-            //   // Do something with the matching unit and dataObject
-              matchingUnit.violations = dataObject.violations;
-              matchingUnit.ptiType = dataObject.isPti;
-              matchingUnit.meta["clockData"] = dataObject?.clock
-            //   console.log('\n\n' + ('shippingDocument' in logform));
-            //   console.log('\n\n' + 'sign' in logform);
-            //   // Check for shippingDocument key
-            //   matchingUnit.violations.push({
-            //     isShippingID: 'shippingDocument' in logform?.data,
-            //   });
-            //   // Check for sign key
-            //   matchingUnit.violations.push({
-            //     isSignature: 'sign' in logform?.data,
-            //   });
-            //   console.log(`Driver ${matchingUnit} has data: `, dataObject);
-          } else {
-            //   // Handle the case where no matching unit is found
-            console.log(
-              `No matching unit found for driverId ${dataObject.driverId}`,
-            );
-          }
-        }
-      }
-
-      return response.status(HttpStatus.OK).send({
-        data: unitList,
-        total,
-        pageNo: pageNo ?? 1,
-        last_page: Math.ceil(
-          total /
-            (limit && limit.toString().toLowerCase() === 'all'
-              ? total
-              : limit ?? 10),
-        ),
-        message: 'Data found.',
-      });
-    } catch (error) {
-      Logger.error({ message: error.message, stack: error.stack });
-      throw error;
-    }
-  }
-  // get unit for listing
-
-  @GetLogsDecorators()
-  async getLogDrivers(
-    @Query(new ListingParamsValidationPipe()) queryParams,
-    @Req() request: Request,
-    @Res() response: Response,
-  ) {
-    try {
-      const options: FilterQuery<UnitDocument> = {};
-      const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
-      let isActive = queryParams?.isActive;
-      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      let arr = [];
+      const arr = [];
       arr.push(isActive);
       if (arr.includes('true')) {
         isActive = true;
@@ -943,14 +913,176 @@ export class UnitController extends BaseController {
       if (!limit || !isNaN(limit)) {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
-      let queryResponse = await query.exec();
+      const queryResponse = await query.exec();
       console.log(
         `Resuts ----------------------------------------- `,
         queryResponse,
       );
 
       const unitList: UnitResponse[] = [];
-      let driverIDS = [];
+      const driverIDS = [];
+      for (const user of queryResponse) {
+        unitList.push(new UnitResponse(user));
+        driverIDS.push(user['_doc']['driverId']);
+      }
+      if (date) {
+        console.log('IN IF when date present');
+        const resu = await firstValueFrom<MessagePatternResponseType>(
+          this.hosClient.send(
+            { cmd: 'get_recordTable' },
+            { driverID: driverIDS, date: date },
+          ),
+        );
+
+        console.log('got record table');
+        for (let i = 0; i < resu.data.length; i++) {
+          const dataObject = resu.data[i];
+
+          // Find the corresponding unit for the current dataObject's driverId
+          const matchingUnit = unitList.find(
+            (unit) => unit.driverId == dataObject.driverId,
+          );
+
+          // if (matchingUnit) {
+          //   // date:any,driverId:any,tenantId,companyTimeZone
+          //   //   const logform = await firstValueFrom<MessagePatternResponseType>(
+          //   //     this.reportService.send(
+          //   //       { cmd: 'get_logform' },
+          //   //       {
+          //   //         date: date,
+          //   //         driverId: matchingUnit.driverId,
+          //   //         tenantId: matchingUnit.tenantId,
+          //   //         companyTimeZone:
+          //   //           matchingUnit.homeTerminalTimeZone['_doc']['tzCode'],
+          //   //       },
+          //   //     ),
+          //   //   );
+          //   //   // Do something with the matching unit and dataObject
+          //   matchingUnit.violations = dataObject.violations;
+          //   matchingUnit.ptiType = dataObject.isPti;
+          //   matchingUnit.meta['clockData'] = dataObject?.clock;
+          //   //   console.log('\n\n' + ('shippingDocument' in logform));
+          //   //   console.log('\n\n' + 'sign' in logform);
+          //   //   // Check for shippingDocument key
+          //   //   matchingUnit.violations.push({
+          //   //     isShippingID: 'shippingDocument' in logform?.data,
+          //   //   });
+          //   //   // Check for sign key
+          //   //   matchingUnit.violations.push({
+          //   //     isSignature: 'sign' in logform?.data,
+          //   //   });
+          //   //   console.log(`Driver ${matchingUnit} has data: `, dataObject);
+          // } else {
+          //   //   // Handle the case where no matching unit is found
+          //   console.log(
+          //     `No matching unit found for driverId ${dataObject.driverId}`,
+          //   );
+          // }
+        }
+      }
+
+      return response.status(HttpStatus.OK).send({
+        data: unitList,
+        total,
+        pageNo: pageNo ?? 1,
+        last_page: Math.ceil(
+          total /
+            (limit && limit.toString().toLowerCase() === 'all'
+              ? total
+              : limit ?? 10),
+        ),
+        message: 'Data found.',
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
+  // get unit for listing
+
+  @GetLogsDecorators()
+  async getLogDrivers(
+    @Query(new ListingParamsValidationPipe()) queryParams,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
+      const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
+      let isActive = queryParams?.isActive;
+      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
+      const arr = [];
+      arr.push(isActive);
+      if (arr.includes('true')) {
+        isActive = true;
+      } else {
+        isActive = false;
+      }
+      // let isActive = false
+      // if(isActive === 'false'){}
+
+      if (search) {
+        options.$or = [];
+        searchableAttributes.forEach((attribute) => {
+          options.$or.push({ [attribute]: new RegExp(search, 'i') });
+        });
+        if (arr[0]) {
+          options['$and'] = [];
+          isActiveinActive.forEach((attribute) => {
+            options.$and.push({ [attribute]: isActive });
+          });
+        }
+      } else {
+        // options.$or.push({'isActive':isActive})
+        if (arr[0]) {
+          options.$or = [];
+          isActiveinActive.forEach((attribute) => {
+            options.$or.push({ [attribute]: isActive });
+          });
+        }
+      }
+
+      options.$and = [];
+      options.$and.push(
+        // { deviceId: { $exists: true, $ne: null } },
+        { driverId: { $exists: true, $ne: null } },
+        { vehicleId: { $exists: true, $ne: null } },
+        { tenantId: id },
+      );
+
+      Logger.log(
+        `Calling find method of Unit service with search options to get query.`,
+      );
+      const query = this.unitService.findData(options);
+
+      Logger.log(`Adding sort options to query.`);
+      if (orderBy && sortableAttributes.includes(orderBy)) {
+        query.collation({ locale: 'en' }).sort({ [orderBy]: orderType ?? 1 });
+      } else {
+        query.sort({ updatedAt: -1 });
+      }
+
+      Logger.log(
+        `Calling count method of unit service with search options to get total count of records.`,
+      );
+      const total = await this.unitService.count(options);
+
+      Logger.log(
+        `Executing query with pagination. Skipping: ${
+          ((pageNo ?? 1) - 1) * (limit ?? 10)
+        }, Limit: ${limit ?? 10}`,
+      );
+      if (!limit || !isNaN(limit)) {
+        query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
+      }
+      const queryResponse = await query.exec();
+      console.log(
+        `Resuts ----------------------------------------- `,
+        queryResponse,
+      );
+
+      const unitList: UnitResponse[] = [];
+      const driverIDS = [];
       for (const user of queryResponse) {
         unitList.push(new UnitResponse(user));
         driverIDS.push(user['_doc']['driverId']);
@@ -999,6 +1131,84 @@ export class UnitController extends BaseController {
       throw error;
     }
   }
+
+  // get listing of all units statuses
+  // for the traking
+  @allcurrentStatusesDecorators()
+  async allCurrentStatuses(
+    @Query(new ListingParamsValidationPipe()) queryParams,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
+      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
+      const status = {
+        onDuty: 0,
+        offDuty: 0,
+        sleeperBerth: 0,
+        driving: 0,
+        pc: 0,
+        ym: 0,
+      };
+      options.$and = [];
+      options.$and.push(
+        { meta: { $exists: true, $ne: null } },
+
+        { tenantId: id },
+      );
+      const query = this.unitService.findData(options);
+      const queryResponse = await query.exec();
+      for (const user of queryResponse) {
+        if (user['_doc'].meta) {
+          const lastActivity = user['_doc']['meta']['lastActivity'];
+
+          if (lastActivity) {
+            if (
+              lastActivity.currentEventCode == '1' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.offDuty = status.offDuty + 1;
+            } else if (
+              lastActivity.currentEventCode == '2' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.sleeperBerth = status.sleeperBerth + 1;
+            } else if (
+              lastActivity.currentEventCode == '3' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.driving = status.driving + 1;
+            } else if (
+              lastActivity.currentEventCode == '4' &&
+              lastActivity.currentEventType == '1'
+            ) {
+              status.onDuty = status.onDuty + 1;
+            } else if (
+              lastActivity.currentEventCode == '1' &&
+              lastActivity.currentEventType == '3'
+            ) {
+              status.pc = status.pc + 1;
+            } else if (
+              lastActivity.currentEventCode == '3' &&
+              lastActivity.currentEventType == '3'
+            ) {
+              status.ym = status.ym + 1;
+            }
+          }
+        }
+        // driverIDS.push(user['_doc']['driverId']);
+      }
+
+      return response.status(HttpStatus.OK).send({
+        data: status,
+        message: 'Data found.',
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
   // get listing of all units
   // for the traking
   @GetTrackingDecorators()
@@ -1012,7 +1222,7 @@ export class UnitController extends BaseController {
       const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
       let isActive = queryParams?.isActive;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      let arr = [];
+      const arr = [];
       arr.push(isActive);
       if (arr.includes('true')) {
         isActive = true;
@@ -1046,7 +1256,7 @@ export class UnitController extends BaseController {
       options.$and = [];
       options.$and.push(
         { meta: { $exists: true, $ne: null } },
-       
+
         { tenantId: id },
       );
 
@@ -1075,28 +1285,25 @@ export class UnitController extends BaseController {
       if (!limit || !isNaN(limit)) {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
-      let queryResponse = await query.exec();
+      const queryResponse = await query.exec();
       console.log(
         `Resuts ----------------------------------------- `,
         queryResponse,
       );
 
       const unitList: TrackingListing[] = [];
-      let driverIDS = [];
+      const driverIDS = [];
       let lastActivity;
       for (const user of queryResponse) {
-        if(user['_doc'].meta){
-        let lastActivity  = user['_doc']["meta"]["lastActivity"]
+        if (user['_doc'].meta) {
+          const lastActivity = user['_doc']['meta']['lastActivity'];
 
-      
-        if(user['_doc']["meta"]["lastActivity"]){
-
-          unitList.push(new TrackingListing(user));
+          if (user['_doc']['meta']['lastActivity']) {
+            unitList.push(new TrackingListing(user));
+          }
         }
-      }
         // driverIDS.push(user['_doc']['driverId']);
       }
-     
 
       return response.status(HttpStatus.OK).send({
         data: unitList,
@@ -1249,7 +1456,7 @@ export class UnitController extends BaseController {
   async tcp_getUnits(vin): Promise<any> {
     console.log(`IM in units controller`);
     try {
-      let ids = [];
+      const ids = [];
       const units = await this.unitService.getUnitsByVin(vin);
       if (units.data.length < 1) {
         return {
@@ -1342,6 +1549,4 @@ export class UnitController extends BaseController {
       return error;
     }
   }
-
- 
 }

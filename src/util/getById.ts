@@ -12,7 +12,7 @@ export const getUnitByDriverId = async (
   tenantId: Schema.Types.ObjectId,
 ) => {
   let path;
-  let carrier = await unitService.getCompany(tenantId);
+  const carrier = await unitService.getCompany(tenantId);
   if (data?.imageKey) {
     path = await awsService.getObject(data.imageKey);
     data['imagePath'] = `data:image/${data.imageName
@@ -20,7 +20,7 @@ export const getUnitByDriverId = async (
       .pop()};base64,${path.replace(/\s+/g, '')}`;
     delete data['imageKey'];
   }
-  let resGraph = await unitService.findGraph(driverId, date, tenantId);
+  const resGraph = await unitService.findGraph(driverId, date, tenantId);
   if (resGraph) {
     data['odometerEnd'] = resGraph[resGraph.length - 1]?.odoMeterSpeed;
     data['engineStart'] = resGraph[0]?.engineHours;
