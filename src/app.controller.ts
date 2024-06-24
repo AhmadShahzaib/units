@@ -834,6 +834,8 @@ export class UnitController extends BaseController {
           tableData['status'] = {
             currentEventCode: lastActicity.currentEventCode,
             currentEventType: lastActicity.currentEventType,
+            currentTime: lastActicity.currentTime,
+            currentDate: lastActicity.currentDate,
           };
           tableData['location'] = lastActicity.address;
         }
