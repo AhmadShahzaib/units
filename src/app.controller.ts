@@ -810,16 +810,8 @@ export class UnitController extends BaseController {
           currentDate.clone().subtract(i, 'days').format('YYYY-MM-DD'),
         );
       }
-      let tableData = {
-        date: '',
-       
-        violations: {},
-        ptiType: '',
-        status: {},
-        location: '',
-        clocks: {},
-      };
-      let recordData
+      let tableData = {};
+      let recordData;
       for (const date of previous7Days) {
         recordData = await firstValueFrom<MessagePatternResponseType>(
           this.hosClient.send(
@@ -830,18 +822,20 @@ export class UnitController extends BaseController {
 
         if (recordData.data[0]) {
           const dataObject = recordData.data[0];
+          tableData = {};
           // Find the corresponding unit for the current dataObject's driverId
-          tableData.violations = dataObject.violations;
-          tableData.ptiType = dataObject.isPti;
-         
-          tableData.clocks = dataObject?.clock;
-        
-          tableData.date = dataObject?.date;
-          tableData['vehicleId']= unit.manualVehicleId
-          tableData['driverId']= unit.driverId
-          let lastActicity = unit.meta['lastActivity']
-          tableData.status = {currentEventCode: lastActicity.currentEventCode,currentEventType :lastActicity.currentEventType }
-          tableData.location = lastActicity.address;
+          tableData['violations'] = dataObject.violations;
+          tableData['ptiType'] = dataObject.isPti;
+          tableData['clocks'] = dataObject?.clock;
+          tableData['date'] = dataObject?.date;
+          tableData['vehicleId'] = unit.manualVehicleId;
+          tableData['driverId'] = unit.driverId;
+          let lastActicity = unit.meta['lastActivity'];
+          tableData['status'] = {
+            currentEventCode: lastActicity.currentEventCode,
+            currentEventType: lastActicity.currentEventType,
+          };
+          tableData['location'] = lastActicity.address;
         }
         unitList.push(tableData);
       }
