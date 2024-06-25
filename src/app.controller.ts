@@ -811,6 +811,8 @@ export class UnitController extends BaseController {
           tableData['ptiType'] = dataObject.isPti;
           tableData['clocks'] = dataObject?.clock;
           tableData['date'] = dataObject?.date;
+          tableData['status'].currentEventCode = dataObject.status.currentEventCode
+          tableData['status'].currentEventType = dataObject.status.currentEventType
         } else {
           tableData['violations'] = '';
           tableData['ptiType'] = '';
