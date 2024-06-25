@@ -778,7 +778,7 @@ export class UnitController extends BaseController {
       const startOfWeek = currentDate.clone().startOf('isoWeek');
       const previous7Days = [];
       // Populate the array with the dates of the previous 7 days
-      for (let i = 1; i <= 7; i++) {
+      for (let i = 0; i <= 7; i++) {
         previous7Days.push(
           currentDate.clone().subtract(i, 'days').format('YYYY-MM-DD'),
         );
