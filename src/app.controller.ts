@@ -824,7 +824,7 @@ export class UnitController extends BaseController {
 
             shiftDutySecondsSplit: 0,
           };
-          tableData['date'] = '';
+          tableData['date'] = date;
         }
         unitList.push(tableData);
       }
