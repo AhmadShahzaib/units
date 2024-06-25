@@ -813,6 +813,7 @@ export class UnitController extends BaseController {
           tableData['date'] = dataObject?.date;
           tableData['status'].currentEventCode = dataObject.status.currentEventCode
           tableData['status'].currentEventType = dataObject.status.currentEventType
+          tableData['location'] = dataObject.lastKnownActivity?.location;
         } else {
           tableData['violations'] = '';
           tableData['ptiType'] = '';
