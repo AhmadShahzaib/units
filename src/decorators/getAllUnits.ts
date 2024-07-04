@@ -11,7 +11,7 @@ import { sortableAttributes } from '../models';
 export default function GetAllUnitsDecorators() {
   const GetAllUnitsDecorators: Array<CombineDecoratorType> = [
     Get('logListing'),
-    SetMetadata('permissions', [DRIVER.LIST]),
+    SetMetadata('permissions', ["e2a62567"]),
     ApiBearerAuth('access-token'),
     ApiResponse({
       status: HttpStatus.OK,

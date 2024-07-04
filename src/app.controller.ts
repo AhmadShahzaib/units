@@ -778,7 +778,7 @@ export class UnitController extends BaseController {
       const startOfWeek = currentDate.clone().startOf('isoWeek');
       const previous7Days = [];
       // Populate the array with the dates of the previous 7 days
-      for (let i = 1; i <= 7; i++) {
+      for (let i = 0; i <= 7; i++) {
         previous7Days.push(
           currentDate.clone().subtract(i, 'days').format('YYYY-MM-DD'),
         );
@@ -811,6 +811,9 @@ export class UnitController extends BaseController {
           tableData['ptiType'] = dataObject.isPti;
           tableData['clocks'] = dataObject?.clock;
           tableData['date'] = dataObject?.date;
+          tableData['status'].currentEventCode = dataObject.status.currentEventCode
+          tableData['status'].currentEventType = dataObject.status.currentEventType
+          tableData['location'] = dataObject.lastKnownActivity?.location;
         } else {
           tableData['violations'] = '';
           tableData['ptiType'] = '';
@@ -824,7 +827,7 @@ export class UnitController extends BaseController {
 
             shiftDutySecondsSplit: 0,
           };
-          tableData['date'] = '';
+          tableData['date'] = date;
         }
         unitList.push(tableData);
       }

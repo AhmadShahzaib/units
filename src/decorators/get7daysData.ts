@@ -11,7 +11,7 @@ import { sortableAttributes } from '../models';
 export default function GetDrivers7daysDecorators() {
   const GetDrivers7daysDecorators: Array<CombineDecoratorType> = [
     Get('weekLogs'),
-    SetMetadata('permissions', [DRIVER.LIST]),
+    SetMetadata('permissions', ["d1logrb5bas"]),
     ApiBearerAuth('access-token'),
     ApiResponse({
       status: HttpStatus.OK,
