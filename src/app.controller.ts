@@ -322,8 +322,7 @@ export class UnitController extends BaseController {
       let options: FilterQuery<UnitDocument>;
       options = {
         driverId: new mongoose.Types.ObjectId(id),
-        deviceId: { $exists: true, $ne: null },
-        vehicleId: { $exists: true, $ne: null },
+       
         isDriverActive: true,
         isActive: true,
       };
