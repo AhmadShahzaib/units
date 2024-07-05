@@ -322,7 +322,7 @@ export class UnitController extends BaseController {
       let options: FilterQuery<UnitDocument>;
       options = {
         driverId: new mongoose.Types.ObjectId(id),
-       
+
         isDriverActive: true,
         isActive: true,
       };
@@ -810,8 +810,10 @@ export class UnitController extends BaseController {
           tableData['ptiType'] = dataObject.isPti;
           tableData['clocks'] = dataObject?.clock;
           tableData['date'] = dataObject?.date;
-          tableData['status'].currentEventCode = dataObject.status.currentEventCode
-          tableData['status'].currentEventType = dataObject.status.currentEventType
+          tableData['status'].currentEventCode =
+            dataObject.status.currentEventCode;
+          tableData['status'].currentEventType =
+            dataObject.status.currentEventType;
           tableData['location'] = dataObject.lastKnownActivity?.location;
         } else {
           tableData['violations'] = '';
