@@ -807,6 +807,7 @@ export class UnitController extends BaseController {
           const dataObject = recordData.data[0];
           // Find the corresponding unit for the current dataObject's driverId
           tableData['violations'] = dataObject.violations;
+          tableData['vehicleId'] = dataObject?.vehicleName;
           tableData['ptiType'] = dataObject.isPti;
           tableData['clocks'] = dataObject?.clock;
           tableData['date'] = dataObject?.date;
