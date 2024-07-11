@@ -13,7 +13,7 @@ import { sortableAttributes } from '../models';
 export default function allcurrentStatusesDecorators() {
   const allcurrentStatusesDecorators: Array<CombineDecoratorType> = [
     Get("/allcurrentStatuses"),
-    SetMetadata('permissions', ["90b5bafe"]),
+    SetMetadata('permissions', ["d41e39f3a"]),
     ApiBearerAuth('access-token'),
     ApiResponse({
       status: HttpStatus.OK,
