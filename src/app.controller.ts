@@ -717,8 +717,23 @@ export class UnitController extends BaseController {
           );
 
           if (matchingUnit) {
-            matchingUnit.violations = dataObject.violations;
+            let vioaltions = dataObject?.violations || [];
+
+            // Remove Signature Violation from Driver current Day
+            const driverCurrentDateInZone = moment
+              .tz(matchingUnit?.homeTerminalTimeZone?.tzCode)
+              ?.format('YYYY-MM-DD');
+            if (date === driverCurrentDateInZone) {
+              const index = vioaltions.findIndex(
+                (violation) => violation.type === 'SIGNATURE_MISSING',
+              );
+              if (index !== -1) {
+                vioaltions.splice(index, 1);
+              }
+            }
+            matchingUnit.violations = vioaltions;
             matchingUnit.ptiType = dataObject.isPti;
+            // matchingUnit.manualVehicleId = dataObject?.vehicleName;
             matchingUnit.meta['clockData'] = dataObject?.clock;
           } else {
             //   // Handle the case where no matching unit is found
