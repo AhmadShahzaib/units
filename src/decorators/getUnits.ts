@@ -38,7 +38,7 @@ const responseExample = {
 export default function GetDecorators() {
   const GetDecorators: Array<CombineDecoratorType> = [
     Get(),
-    SetMetadata('permissions', [DRIVER.LIST]),
+    SetMetadata('permissions', [UNITS.LIST]),
     ApiBearerAuth('access-token'),
     ApiResponse({
       status: HttpStatus.OK,
