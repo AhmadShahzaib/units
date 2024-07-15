@@ -810,14 +810,14 @@ export class UnitController extends BaseController {
         tableData = {};
         tableData['vehicleId'] = unit.manualVehicleId;
         tableData['driverId'] = unit.driverId;
-        let lastActicity = unit.meta['lastActivity'];
+        let lastActicity = unit?.meta && unit.meta['lastActivity'];
         tableData['status'] = {
-          currentEventCode: lastActicity.currentEventCode,
-          currentEventType: lastActicity.currentEventType,
-          currentTime: lastActicity.currentTime,
-          currentDate: lastActicity.currentDate,
+          currentEventCode: lastActicity?.currentEventCode,
+          currentEventType: lastActicity?.currentEventType,
+          currentTime: lastActicity?.currentTime,
+          currentDate: lastActicity?.currentDate,
         };
-        tableData['location'] = lastActicity.address;
+        tableData['location'] = lastActicity?.address;
         if (recordData.data[0]) {
           const dataObject = recordData.data[0];
           // Find the corresponding unit for the current dataObject's driverId
