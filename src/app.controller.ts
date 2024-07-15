@@ -724,11 +724,11 @@ export class UnitController extends BaseController {
               .tz(matchingUnit?.homeTerminalTimeZone?.tzCode)
               ?.format('YYYY-MM-DD');
             if (date === driverCurrentDateInZone) {
-              const index = vioaltions.findIndex(
+              const index = vioaltions?.findIndex(
                 (violation) => violation.type === 'SIGNATURE_MISSING',
               );
               if (index !== -1) {
-                vioaltions.splice(index, 1);
+                vioaltions?.splice(index, 1);
               }
             }
             matchingUnit.violations = vioaltions;
@@ -821,12 +821,12 @@ export class UnitController extends BaseController {
         if (recordData.data[0]) {
           const dataObject = recordData.data[0];
           // Find the corresponding unit for the current dataObject's driverId
-          if (date == currentDate.format("YYYY-MM-DD")) {
-            const index = dataObject.vioaltions.findIndex(
+          if (date == currentDate.format('YYYY-MM-DD')) {
+            const index = dataObject?.vioaltions?.findIndex(
               (violation) => violation.type === 'SIGNATURE_MISSING',
             );
             if (index !== -1) {
-              dataObject.vioaltions.splice(index, 1);
+              dataObject?.vioaltions?.splice(index, 1);
             }
           }
           tableData['violations'] = dataObject.violations;
