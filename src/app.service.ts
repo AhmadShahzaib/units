@@ -12,6 +12,7 @@ import {
   Schema,
 } from 'mongoose';
 import { ClientProxy } from '@nestjs/microservices';
+import { getLocationDescription } from './util/formatedLocation';
 
 import { InjectModel } from '@nestjs/mongoose';
 import UnitDocument from 'mongoDb/document/document';
@@ -601,7 +602,14 @@ export class UnitService extends BaseService<UnitDocument> {
       data: units,
     };
   };
-
+  //get location
+  getAddress = async (lat, long) => {
+    try {
+      return await getLocationDescription(lat, long);
+    } catch (error) {
+      throw error;
+    }
+  };
   /**
    * V2
    * Author: Farzan
@@ -615,18 +623,16 @@ export class UnitService extends BaseService<UnitDocument> {
     ).toISOString();
     let address = meta.lastActivity.address;
     if (!address) {
-      const units = await this.unitModel
-        .findOne({
-          driverId: user.id,
-        })
-        .lean();
-      dateTime = units.lastActivityDate;
-      address = units.lastKnownLocation.address
-        ? units.lastKnownLocation.address
-        : '';
-      meta.lastActivity.address = address;
-      //  meta.lastActivity.address.location=address;
-      //  meta.lastActivity.address.dateTime=dateTime;
+              address = await this.getAddress(
+          meta.lastActivity.latitude,
+          meta.lastActivity.longitude,
+        );
+        meta.lastActivity.address = address;
+  
+        Logger.log("this is address : ")
+        Logger.log(address)
+      
+      
     }
 
     const metaUpdated = await this.unitModel.updateOne(
