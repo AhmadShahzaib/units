@@ -822,11 +822,11 @@ export class UnitController extends BaseController {
           const dataObject = recordData.data[0];
           // Find the corresponding unit for the current dataObject's driverId
           if (date == currentDate.format('YYYY-MM-DD')) {
-            const index = dataObject?.vioaltions?.findIndex(
+            const index = dataObject?.violations?.findIndex(
               (violation) => violation.type === 'SIGNATURE_MISSING',
             );
             if (index !== -1) {
-              dataObject?.vioaltions?.splice(index, 1);
+              dataObject?.violations?.splice(index, 1);
             }
           }
           tableData['violations'] = dataObject.violations;
