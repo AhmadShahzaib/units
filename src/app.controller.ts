@@ -835,6 +835,10 @@ export class UnitController extends BaseController {
               dataObject?.violations?.splice(index, 1);
             }
             tableData['location'] = lastActicity?.address;
+            tableData['status'].currentEventCode =
+            lastActicity.currentEventCode;
+          tableData['status'].currentEventType =
+          lastActicity.currentEventType;
           }
           tableData['violations'] = dataObject.violations;
           tableData['vehicleId'] = dataObject?.vehicleName;
