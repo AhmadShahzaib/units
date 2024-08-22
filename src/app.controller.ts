@@ -820,25 +820,28 @@ export class UnitController extends BaseController {
         tableData['location'] = lastActicity?.address;
         if (recordData.data[0]) {
           const dataObject = recordData.data[0];
+          tableData['location'] = dataObject.lastKnownActivity?.location;
+          tableData['status'].currentEventCode =
+          dataObject.status.currentEventCode;
+        tableData['status'].currentEventType =
+          dataObject.status.currentEventType;
           // Find the corresponding unit for the current dataObject's driverId
           if (date == currentDate.format('YYYY-MM-DD')) {
-            const index = dataObject?.vioaltions?.findIndex(
+            const index = dataObject?.violations?.findIndex(
               (violation) => violation.type === 'SIGNATURE_MISSING',
+              
             );
             if (index !== -1) {
-              dataObject?.vioaltions?.splice(index, 1);
+              dataObject?.violations?.splice(index, 1);
             }
+            tableData['location'] = lastActicity?.address;
           }
           tableData['violations'] = dataObject.violations;
           tableData['vehicleId'] = dataObject?.vehicleName;
           tableData['ptiType'] = dataObject.isPti;
           tableData['clocks'] = dataObject?.clock;
           tableData['date'] = dataObject?.date;
-          tableData['status'].currentEventCode =
-            dataObject.status.currentEventCode;
-          tableData['status'].currentEventType =
-            dataObject.status.currentEventType;
-          tableData['location'] = dataObject.lastKnownActivity?.location;
+         
         } else {
           tableData['violations'] = '';
           tableData['ptiType'] = '';
