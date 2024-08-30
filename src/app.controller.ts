@@ -198,8 +198,7 @@ export class UnitController extends BaseController {
       if (
         vehicleId &&
         // deviceId &&
-        Types.ObjectId.isValid(vehicleId) &&
-        Types.ObjectId.isValid(eldId)
+        Types.ObjectId.isValid(vehicleId)
       ) {
         const data = await this.unitService.updateVehiclesDevice(requestModel);
         if (data.ok === 1) {
@@ -822,30 +821,28 @@ export class UnitController extends BaseController {
           const dataObject = recordData.data[0];
           tableData['location'] = dataObject.lastKnownActivity?.location;
           tableData['status'].currentEventCode =
-          dataObject.status.currentEventCode;
-        tableData['status'].currentEventType =
-          dataObject.status.currentEventType;
+            dataObject.status.currentEventCode;
+          tableData['status'].currentEventType =
+            dataObject.status.currentEventType;
           // Find the corresponding unit for the current dataObject's driverId
           if (date == currentDate.format('YYYY-MM-DD')) {
             const index = dataObject?.violations?.findIndex(
               (violation) => violation.type === 'SIGNATURE_MISSING',
-              
             );
             if (index !== -1) {
               dataObject?.violations?.splice(index, 1);
             }
             tableData['location'] = lastActicity?.address;
             tableData['status'].currentEventCode =
-            lastActicity.currentEventCode;
-          tableData['status'].currentEventType =
-          lastActicity.currentEventType;
+              lastActicity.currentEventCode;
+            tableData['status'].currentEventType =
+              lastActicity.currentEventType;
           }
           tableData['violations'] = dataObject.violations;
           tableData['vehicleId'] = dataObject?.vehicleName;
           tableData['ptiType'] = dataObject.isPti;
           tableData['clocks'] = dataObject?.clock;
           tableData['date'] = dataObject?.date;
-         
         } else {
           tableData['violations'] = '';
           tableData['ptiType'] = '';
