@@ -733,7 +733,10 @@ export class UnitController extends BaseController {
             matchingUnit.violations = vioaltions;
             matchingUnit.ptiType = dataObject.isPti;
             // matchingUnit.manualVehicleId = dataObject?.vehicleName;
-            matchingUnit.meta['clockData'] = dataObject?.clock;
+            if( matchingUnit.meta['clockData']){
+
+              matchingUnit.meta['clockData'] = dataObject?.clock;
+            }
           } else {
             //   // Handle the case where no matching unit is found
             console.log(
