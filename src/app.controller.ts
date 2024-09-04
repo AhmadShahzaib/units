@@ -711,7 +711,7 @@ export class UnitController extends BaseController {
           const dataObject = resu.data[i];
 
           // Find the corresponding unit for the current dataObject's driverId
-          const matchingUnit = unitList.find(
+          const matchingUnit:any = unitList.find(
             (unit) => unit.driverId == dataObject.driverId,
           );
 
@@ -733,10 +733,8 @@ export class UnitController extends BaseController {
             matchingUnit.violations = vioaltions;
             matchingUnit.ptiType = dataObject.isPti;
             // matchingUnit.manualVehicleId = dataObject?.vehicleName;
-            if( matchingUnit.meta['clockData']){
-
-              matchingUnit.meta['clockData'] = dataObject?.clock;
-            }
+            matchingUnit.meta = matchingUnit.meta || {};
+            matchingUnit.meta['clockData'] = dataObject?.clock;
           } else {
             //   // Handle the case where no matching unit is found
             console.log(
