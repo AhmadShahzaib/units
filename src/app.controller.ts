@@ -39,6 +39,8 @@ import {
 } from './models/driverVehicleRequest';
 import { DeviceVehicleRequest } from 'models/deviceVehicle';
 import GetDecorators from './decorators/getUnits';
+import GetMainScreenDecorators from './decorators/getUnitsMainScreen';
+
 import GetTrackingDecorators from './decorators/getTrcaking';
 import allcurrentStatusesDecorators from './decorators/allcurrentStatuses';
 import { searchableAttributes } from './models';
@@ -871,6 +873,136 @@ export class UnitController extends BaseController {
       throw error;
     }
   }
+
+
+
+
+  //main screen 
+
+  @GetMainScreenDecorators()
+  async getMainScreenDrivers(
+    @Query(new ListingParamsValidationPipe()) queryParams,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
+      const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
+      let isActive = queryParams?.isActive;
+      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
+      const arr = [];
+      arr.push(isActive);
+      if (arr.includes('true')) {
+        isActive = true;
+      } else {
+        isActive = false;
+      }
+      // let isActive = false
+      // if(isActive === 'false'){}
+
+      if (search) {
+        options.$or = [];
+        searchableAttributes.forEach((attribute) => {
+          options.$or.push({ [attribute]: new RegExp(search, 'i') });
+        });
+        if (arr[0]) {
+          options['$and'] = [];
+          isActiveinActive.forEach((attribute) => {
+            options.$and.push({ [attribute]: isActive });
+          });
+        }
+      } else {
+        // options.$or.push({'isActive':isActive})
+        if (arr[0]) {
+          options.$or = [];
+          isActiveinActive.forEach((attribute) => {
+            options.$or.push({ [attribute]: isActive });
+          });
+        }
+      }
+
+      options.$and = [];
+      options.$and.push(
+        // { deviceId: { $exists: true, $ne: null } },
+        { driverId: { $exists: true, $ne: null } },
+        { vehicleId: { $exists: true, $ne: null } },
+        { tenantId: id },
+      );
+
+      Logger.log(
+        `Calling find method of Unit service with search options to get query.`,
+      );
+      const query = this.unitService.findData(options);
+
+      Logger.log(`Adding sort options to query.`);
+      if (orderBy && sortableAttributes.includes(orderBy)) {
+        query.collation({ locale: 'en' }).sort({ [orderBy]: orderType ?? 1 });
+      } else {
+        query.sort({ updatedAt: -1 });
+      }
+
+      Logger.log(
+        `Calling count method of unit service with search options to get total count of records.`,
+      );
+      const total = await this.unitService.count(options);
+
+      Logger.log(
+        `Executing query with pagination. Skipping: ${
+          ((pageNo ?? 1) - 1) * (limit ?? 10)
+        }, Limit: ${limit ?? 10}`,
+      );
+      if (!limit || !isNaN(limit)) {
+        query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
+      }
+      const queryResponse = await query.exec();
+      console.log(
+        `Resuts ----------------------------------------- `,
+        queryResponse,
+      );
+
+      const unitList:any[] = [];
+      // const driverIDS = [];
+      for (const user of queryResponse) {
+        unitList.push(user["_doc"]);
+        // driverIDS.push(user['_doc']['driverId']);
+      }
+    
+
+        
+      const eventCodePriority = {
+        3: 1, // Driving
+        4: 2, // On Duty
+        2: 3, // Sleeper Berth
+        1: 4, // Off Duty
+      };
+      
+      unitList.sort((a, b) => {
+        // Default to '1' (Off Duty) if meta or lastActivity is not available
+        const aEventCode = parseInt(a.meta?.lastActivity?.currentEventCode) || 1;
+        const bEventCode = parseInt(b.meta?.lastActivity?.currentEventCode) || 1;
+      
+        // Compare based on priority
+        return (eventCodePriority[aEventCode] || 5) - (eventCodePriority[bEventCode] || 5);
+      });
+      return response.status(HttpStatus.OK).send({
+        data: unitList,
+        total,
+        pageNo: pageNo ?? 1,
+        last_page: Math.ceil(
+          total /
+            (limit && limit.toString().toLowerCase() === 'all'
+              ? total
+              : limit ?? 10),
+        ),
+        message: 'Data found.',
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
+
+
   @GetDecorators()
   async getDrivers(
     @Query(new ListingParamsValidationPipe()) queryParams,
