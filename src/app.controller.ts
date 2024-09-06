@@ -966,8 +966,11 @@ export class UnitController extends BaseController {
 
       let unitList:any[] = [];
       // const driverIDS = [];
+      let usertemp;
       for (const user of queryResponse) {
-        unitList.push(user["_doc"]);
+        usertemp = user["_doc"];
+        usertemp.id = user._id.toString()
+        unitList.push(usertemp);
         // driverIDS.push(user['_doc']['driverId']);
       }
       if(filter && filter.length> 0){
