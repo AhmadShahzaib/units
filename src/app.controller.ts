@@ -713,7 +713,7 @@ export class UnitController extends BaseController {
           const dataObject = resu.data[i];
 
           // Find the corresponding unit for the current dataObject's driverId
-          const matchingUnit:any = unitList.find(
+          const matchingUnit: any = unitList.find(
             (unit) => unit.driverId == dataObject.driverId,
           );
 
@@ -840,10 +840,8 @@ export class UnitController extends BaseController {
               lastActicity.currentEventCode;
             tableData['status'].currentEventType =
               lastActicity.currentEventType;
-              tableData['status'].currentTime =
-              lastActicity.currentTime;
-            tableData['status'].currentDate =
-              lastActicity.currentDate;
+            tableData['status'].currentTime = lastActicity.currentTime;
+            tableData['status'].currentDate = lastActicity.currentDate;
           }
           tableData['violations'] = dataObject.violations;
           tableData['vehicleId'] = dataObject?.vehicleName;
@@ -878,10 +876,7 @@ export class UnitController extends BaseController {
     }
   }
 
-
-
-
-  //main screen 
+  //main screen
 
   @GetMainScreenDecorators()
   async getMainScreenDrivers(
@@ -891,7 +886,8 @@ export class UnitController extends BaseController {
   ) {
     try {
       const options: FilterQuery<UnitDocument> = {};
-      const { search, orderBy, orderType, pageNo, limit, date,filter } = queryParams;
+      const { search, orderBy, orderType, pageNo, limit, date, filter } =
+        queryParams;
       let isActive = queryParams?.isActive;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
       const arr = [];
@@ -964,39 +960,51 @@ export class UnitController extends BaseController {
         queryResponse,
       );
 
-      let unitList:any[] = [];
+      let unitList: any[] = [];
       // const driverIDS = [];
       let usertemp;
       for (const user of queryResponse) {
-        usertemp = user["_doc"];
-        usertemp.id = user._id.toString()
+        usertemp = user['_doc'];
+        usertemp.id = user._id.toString();
         unitList.push(usertemp);
         // driverIDS.push(user['_doc']['driverId']);
       }
-      if(filter && filter.length> 0){
-
-        unitList = unitList.filter((unit) => {
-         const eventCode = unit.meta?.lastActivity?.currentEventCode;
-         // Only return units that have meta and lastActivity and match the filter criteria
-         return eventCode && filter.includes(eventCode);
-       });
+      if (filter && filter.length > 0) {
+        if (!filter.includes('5')) {
+          unitList = unitList.filter((unit) => {
+            const eventCode = unit.meta?.lastActivity?.currentEventCode;
+            // Only return units that have meta and lastActivity and match the filter criteria
+            return eventCode && filter.includes(eventCode);
+          });
+        }
+        if (filter.includes('0')) {
+          unitList = unitList.filter((unit) => {
+            const eventCode = unit.meta?.lastActivity?.currentEventCode;
+            // Only return units that have meta and lastActivity and match the filter criteria
+            return !eventCode && !filter.includes(eventCode);
+          });
+        }
       }
-      
-        
+
       const eventCodePriority = {
         3: 1, // Driving
         4: 2, // On Duty
         2: 3, // Sleeper Berth
         1: 4, // Off Duty
       };
-      
+
       unitList.sort((a, b) => {
         // Default to '1' (Off Duty) if meta or lastActivity is not available
-        const aEventCode = parseInt(a.meta?.lastActivity?.currentEventCode) || 1;
-        const bEventCode = parseInt(b.meta?.lastActivity?.currentEventCode) || 1;
-      
+        const aEventCode =
+          parseInt(a.meta?.lastActivity?.currentEventCode) || 1;
+        const bEventCode =
+          parseInt(b.meta?.lastActivity?.currentEventCode) || 1;
+
         // Compare based on priority
-        return (eventCodePriority[aEventCode] || 5) - (eventCodePriority[bEventCode] || 5);
+        return (
+          (eventCodePriority[aEventCode] || 5) -
+          (eventCodePriority[bEventCode] || 5)
+        );
       });
       return response.status(HttpStatus.OK).send({
         data: unitList,
@@ -1015,7 +1023,6 @@ export class UnitController extends BaseController {
       throw error;
     }
   }
-
 
   @GetDecorators()
   async getDrivers(
