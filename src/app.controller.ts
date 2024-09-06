@@ -887,7 +887,7 @@ export class UnitController extends BaseController {
   ) {
     try {
       const options: FilterQuery<UnitDocument> = {};
-      const { search, orderBy, orderType, pageNo, limit, date } = queryParams;
+      const { search, orderBy, orderType, pageNo, limit, date,filter } = queryParams;
       let isActive = queryParams?.isActive;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
       const arr = [];
@@ -960,14 +960,21 @@ export class UnitController extends BaseController {
         queryResponse,
       );
 
-      const unitList:any[] = [];
+      let unitList:any[] = [];
       // const driverIDS = [];
       for (const user of queryResponse) {
         unitList.push(user["_doc"]);
         // driverIDS.push(user['_doc']['driverId']);
       }
-    
+      if(filter.length> 0){
 
+        unitList = unitList.filter((unit) => {
+         const eventCode = unit.meta?.lastActivity?.currentEventCode;
+         // Only return units that have meta and lastActivity and match the filter criteria
+         return eventCode && filter.includes(eventCode);
+       });
+      }
+      
         
       const eventCodePriority = {
         3: 1, // Driving
