@@ -970,7 +970,7 @@ export class UnitController extends BaseController {
         unitList.push(user["_doc"]);
         // driverIDS.push(user['_doc']['driverId']);
       }
-      if(filter.length> 0){
+      if(filter && filter.length> 0){
 
         unitList = unitList.filter((unit) => {
          const eventCode = unit.meta?.lastActivity?.currentEventCode;
