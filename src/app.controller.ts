@@ -840,6 +840,10 @@ export class UnitController extends BaseController {
               lastActicity.currentEventCode;
             tableData['status'].currentEventType =
               lastActicity.currentEventType;
+              tableData['status'].currentTime =
+              lastActicity.currentTime;
+            tableData['status'].currentDate =
+              lastActicity.currentDate;
           }
           tableData['violations'] = dataObject.violations;
           tableData['vehicleId'] = dataObject?.vehicleName;
