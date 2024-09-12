@@ -13,7 +13,7 @@ import { sortableAttributes } from '../models';
 export default function GetTrackingDecorators() {
   const GetTrackingDecorators: Array<CombineDecoratorType> = [
     Get("/trackingListing"),
-    SetMetadata('permissions', [DRIVER.LIST]),
+    SetMetadata('permissions', ["tralts2t6a"]),
     ApiBearerAuth('access-token'),
     ApiResponse({
       status: HttpStatus.OK,

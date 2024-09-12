@@ -39,6 +39,8 @@ import {
 } from './models/driverVehicleRequest';
 import { DeviceVehicleRequest } from 'models/deviceVehicle';
 import GetDecorators from './decorators/getUnits';
+import GetMainScreenDecorators from './decorators/getUnitsMainScreen';
+
 import GetTrackingDecorators from './decorators/getTrcaking';
 import allcurrentStatusesDecorators from './decorators/allcurrentStatuses';
 import { searchableAttributes } from './models';
@@ -198,8 +200,7 @@ export class UnitController extends BaseController {
       if (
         vehicleId &&
         // deviceId &&
-        Types.ObjectId.isValid(vehicleId) &&
-        Types.ObjectId.isValid(eldId)
+        Types.ObjectId.isValid(vehicleId)
       ) {
         const data = await this.unitService.updateVehiclesDevice(requestModel);
         if (data.ok === 1) {
@@ -322,8 +323,7 @@ export class UnitController extends BaseController {
       let options: FilterQuery<UnitDocument>;
       options = {
         driverId: new mongoose.Types.ObjectId(id),
-        deviceId: { $exists: true, $ne: null },
-        vehicleId: { $exists: true, $ne: null },
+
         isDriverActive: true,
         isActive: true,
       };
@@ -713,13 +713,29 @@ export class UnitController extends BaseController {
           const dataObject = resu.data[i];
 
           // Find the corresponding unit for the current dataObject's driverId
-          const matchingUnit = unitList.find(
+          const matchingUnit: any = unitList.find(
             (unit) => unit.driverId == dataObject.driverId,
           );
 
           if (matchingUnit) {
-            matchingUnit.violations = dataObject.violations;
+            let vioaltions = dataObject?.violations || [];
+
+            // Remove Signature Violation from Driver current Day
+            const driverCurrentDateInZone = moment
+              .tz(matchingUnit?.homeTerminalTimeZone?.tzCode)
+              ?.format('YYYY-MM-DD');
+            if (date === driverCurrentDateInZone) {
+              const index = vioaltions?.findIndex(
+                (violation) => violation.type === 'SIGNATURE_MISSING',
+              );
+              if (index !== -1) {
+                vioaltions?.splice(index, 1);
+              }
+            }
+            matchingUnit.violations = vioaltions;
             matchingUnit.ptiType = dataObject.isPti;
+            // matchingUnit.manualVehicleId = dataObject?.vehicleName;
+            matchingUnit.meta = matchingUnit.meta || {};
             matchingUnit.meta['clockData'] = dataObject?.clock;
           } else {
             //   // Handle the case where no matching unit is found
@@ -778,7 +794,7 @@ export class UnitController extends BaseController {
       const startOfWeek = currentDate.clone().startOf('isoWeek');
       const previous7Days = [];
       // Populate the array with the dates of the previous 7 days
-      for (let i = 1; i <= 7; i++) {
+      for (let i = 0; i <= 7; i++) {
         previous7Days.push(
           currentDate.clone().subtract(i, 'days').format('YYYY-MM-DD'),
         );
@@ -796,18 +812,39 @@ export class UnitController extends BaseController {
         tableData = {};
         tableData['vehicleId'] = unit.manualVehicleId;
         tableData['driverId'] = unit.driverId;
-        let lastActicity = unit.meta['lastActivity'];
+        let lastActicity = unit?.meta && unit.meta['lastActivity'];
         tableData['status'] = {
-          currentEventCode: lastActicity.currentEventCode,
-          currentEventType: lastActicity.currentEventType,
-          currentTime: lastActicity.currentTime,
-          currentDate: lastActicity.currentDate,
+          currentEventCode: lastActicity?.currentEventCode,
+          currentEventType: lastActicity?.currentEventType,
+          currentTime: lastActicity?.currentTime,
+          currentDate: lastActicity?.currentDate,
         };
-        tableData['location'] = lastActicity.address;
+        tableData['location'] = lastActicity?.address;
         if (recordData.data[0]) {
           const dataObject = recordData.data[0];
+          tableData['location'] = dataObject.lastKnownActivity?.location;
+          tableData['status'].currentEventCode =
+            dataObject.status.currentEventCode;
+          tableData['status'].currentEventType =
+            dataObject.status.currentEventType;
           // Find the corresponding unit for the current dataObject's driverId
+          if (date == currentDate.format('YYYY-MM-DD')) {
+            const index = dataObject?.violations?.findIndex(
+              (violation) => violation.type === 'SIGNATURE_MISSING',
+            );
+            if (index !== -1) {
+              dataObject?.violations?.splice(index, 1);
+            }
+            tableData['location'] = lastActicity?.address;
+            tableData['status'].currentEventCode =
+              lastActicity.currentEventCode;
+            tableData['status'].currentEventType =
+              lastActicity.currentEventType;
+            tableData['status'].currentTime = lastActicity.currentTime;
+            tableData['status'].currentDate = lastActicity.currentDate;
+          }
           tableData['violations'] = dataObject.violations;
+          tableData['vehicleId'] = dataObject?.vehicleName;
           tableData['ptiType'] = dataObject.isPti;
           tableData['clocks'] = dataObject?.clock;
           tableData['date'] = dataObject?.date;
@@ -824,7 +861,7 @@ export class UnitController extends BaseController {
 
             shiftDutySecondsSplit: 0,
           };
-          tableData['date'] = '';
+          tableData['date'] = date;
         }
         unitList.push(tableData);
       }
@@ -838,6 +875,155 @@ export class UnitController extends BaseController {
       throw error;
     }
   }
+
+  //main screen
+
+  @GetMainScreenDecorators()
+  async getMainScreenDrivers(
+    @Query(new ListingParamsValidationPipe()) queryParams,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const options: FilterQuery<UnitDocument> = {};
+      const { search, orderBy, orderType, pageNo, limit, date, filter } =
+        queryParams;
+      let isActive = queryParams?.isActive;
+      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
+      const arr = [];
+      arr.push(isActive);
+      if (arr.includes('true')) {
+        isActive = true;
+      } else {
+        isActive = false;
+      }
+      // let isActive = false
+      // if(isActive === 'false'){}
+
+      if (search) {
+        options.$or = [];
+        searchableAttributes.forEach((attribute) => {
+          options.$or.push({ [attribute]: new RegExp(search, 'i') });
+        });
+        if (arr[0]) {
+          options['$and'] = [];
+          isActiveinActive.forEach((attribute) => {
+            options.$and.push({ [attribute]: isActive });
+          });
+        }
+      } else {
+        // options.$or.push({'isActive':isActive})
+        if (arr[0]) {
+          options.$or = [];
+          isActiveinActive.forEach((attribute) => {
+            options.$or.push({ [attribute]: isActive });
+          });
+        }
+      }
+
+      options.$and = [];
+      options.$and.push(
+        // { deviceId: { $exists: true, $ne: null } },
+        { driverId: { $exists: true, $ne: null } },
+        { vehicleId: { $exists: true, $ne: null } },
+        { tenantId: id },
+      );
+
+      Logger.log(
+        `Calling find method of Unit service with search options to get query.`,
+      );
+      const query = this.unitService.findData(options);
+
+      Logger.log(`Adding sort options to query.`);
+      if (orderBy && sortableAttributes.includes(orderBy)) {
+        query.collation({ locale: 'en' }).sort({ [orderBy]: orderType ?? 1 });
+      } else {
+        query.sort({ updatedAt: -1 });
+      }
+
+      Logger.log(
+        `Calling count method of unit service with search options to get total count of records.`,
+      );
+      const total = await this.unitService.count(options);
+
+      Logger.log(
+        `Executing query with pagination. Skipping: ${
+          ((pageNo ?? 1) - 1) * (limit ?? 10)
+        }, Limit: ${limit ?? 10}`,
+      );
+      if (!limit || !isNaN(limit)) {
+        query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
+      }
+      const queryResponse = await query.exec();
+      console.log(
+        `Resuts ----------------------------------------- `,
+        queryResponse,
+      );
+
+      let unitList: any[] = [];
+      // const driverIDS = [];
+      let usertemp;
+      for (const user of queryResponse) {
+        usertemp = user['_doc'];
+        usertemp.id = user._id.toString();
+        unitList.push(usertemp);
+        // driverIDS.push(user['_doc']['driverId']);
+      }
+      if (filter && filter.length > 0) {
+        if (!filter.includes('5')) {
+          unitList = unitList.filter((unit) => {
+            const eventCode = unit.meta?.lastActivity?.currentEventCode;
+            // Only return units that have meta and lastActivity and match the filter criteria
+            return eventCode && filter.includes(eventCode);
+          });
+        }
+        if (filter.includes('0')) {
+          unitList = unitList.filter((unit) => {
+            const eventCode = unit.meta?.lastActivity?.currentEventCode;
+            // Only return units that have meta and lastActivity and match the filter criteria
+            return !eventCode && !filter.includes(eventCode);
+          });
+        }
+      }
+
+      const eventCodePriority = {
+        3: 1, // Driving
+        4: 2, // On Duty
+        2: 3, // Sleeper Berth
+        1: 4, // Off Duty
+      };
+
+      unitList.sort((a, b) => {
+        // Default to '1' (Off Duty) if meta or lastActivity is not available
+        const aEventCode =
+          parseInt(a.meta?.lastActivity?.currentEventCode) || 1;
+        const bEventCode =
+          parseInt(b.meta?.lastActivity?.currentEventCode) || 1;
+
+        // Compare based on priority
+        return (
+          (eventCodePriority[aEventCode] || 5) -
+          (eventCodePriority[bEventCode] || 5)
+        );
+      });
+      return response.status(HttpStatus.OK).send({
+        data: unitList,
+        total,
+        pageNo: pageNo ?? 1,
+        last_page: Math.ceil(
+          total /
+            (limit && limit.toString().toLowerCase() === 'all'
+              ? total
+              : limit ?? 10),
+        ),
+        message: 'Data found.',
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
+
   @GetDecorators()
   async getDrivers(
     @Query(new ListingParamsValidationPipe()) queryParams,
